@@ -3,7 +3,7 @@
 # $^ = all dependencies
 
 # Define phony targets to avoid conflicts with files of the same name
-.PHONY: all os clean
+.PHONY: all taaj clean
 
 # Default target to build everything and run the OS image
 all: loader
@@ -41,7 +41,7 @@ loader: stage1boot stage2boot
 	#sudo cp kernel.bin /mnt/KERNEL.BIN
 	# sudo umount /mnt
 
-os: loader
+taaj: loader
 	cp build/stage1.sys diskutility/deploy/stage1.sys
 	cp build/stage2.sys diskutility/deploy/stage2.sys
 	#qemu-system-x86_64 -drive format=raw,file=disk.img
