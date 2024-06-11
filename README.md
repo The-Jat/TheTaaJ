@@ -9,19 +9,33 @@ Follow these steps to build TheTaaJ from source:
 
 git clone https://github.com/The-Jat/TheTaaJ.git
 
-2. **Prerequisites**: 
+2. **Prerequisites**:
+
+You need the following utilities:
+- NASM (The Netwide Assembler)
+- QEMU (Quick Emulator)
+
+You can install NASM and QEMU using the package manager for your operating system. For example, on Ubuntu, you can use `apt`:
+
+```sh
 sudo apt-get install nasm
-sudo apt-get install build-essentials
-sudo apt-get install mono-complete
+sudo apt-get install qemu
 
-3. **Compile the Bootloader**: 
-make taaj
+3. **Compile the Bootloader**:
 
-4. **Build the DiskUtility**: 
-cd diskutility
-make diskutility
+To compile the bootloader, navigate to the root of the repository and run:
 
-5. **Generate the Image**: 
-In the same diskutility directory:
-make img
+```sh
+make all
+
+4. **Test the Bootloader**: 
+
+You can test the compiled bootloader using QEMU. Run the following command:
+
+```sh
+make run
+
+5. **Clean Up the Build**:
+```sh
+make clean
 
