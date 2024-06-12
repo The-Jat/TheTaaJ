@@ -48,7 +48,7 @@ FixCS:
 	mov ax, 0x0000
 	mov es, ax
 	mov bx, STAGE_2_LOAD_ADDRESS		; Memory address (0x500)
-	mov al, 29		; Number of sectors to read
+	mov al, STAGE_2_SECTORS_COUNT	; 58 Number of sectors to read
 	call ReadFromDisk	; Call the routine to read from disk
 
 	; jump to the stage 2 land
