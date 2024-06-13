@@ -22,12 +22,31 @@ jmp stage2_entry
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
 	call PrintString16BIOS
-	
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;; We have received the passed value from stage 1
-	;; in AX
 	call PrintNewline		; \n
-	call PrintWordNumber		; Print the Received AX value
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Receive Register Passed Value from Stage 1
+	;; Stage 1 Passed the value in AX
+	; call PrintWordNumber		; Print the Received AX value
+	; call PrintNewline		; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Receive the Fixed Known Memory Location Passed value from Stage 1
+	;; In our case the known memory location is "0x7E00"
+	;; and passed data is of 16 bit.
+	mov ax, [0x7E00]		; Read word size data from the location, without
+					; specifying size explicitly, assembler treats it as
+					; to read data of size of AX from the location which
+					; is of word size.
+	;; OR,
+	; mov word ax, [0x7E00]		; Read word size data from the location by,
+					; specifying size explicitly.
+	
+	call PrintWordNumber		; Print the received data
+	call PrintNewline		; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 jmp $
 

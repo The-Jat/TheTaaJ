@@ -63,10 +63,34 @@ FixCS:
 	mov al, STAGE_2_SECTORS_COUNT	; 58 Number of sectors to read
 	call ReadFromDisk	; Call the routine to read from disk
 
-	; Pass Data from stage 1 to stage 2 through register
-	mov ax, 77
-	Call PrintWordNumber
-	call PrintNewline	; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Pass Data from stage 1 to stage 2,
+	;; through register
+	; mov ax, 77
+	; Call PrintWordNumber
+	; call PrintNewline	; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Pass Data from stage 1 to stage 2,
+	;; through known fixed memory location
+	;; For our example, we will pass the data by storing
+	;; at memory "0x7E00" which is just after the bootcode.
+	mov ax, 1628 
+	mov word [0x7E00], ax		; Store the passing value at the location,
+					; by specifying size explicitly.
+	;; OR
+	;; mov [0x7E00], ax		; Store the passing value at the location
+					; Without specifying size explicitly, the assembler
+					; interprets it as to store the data of size of AX
+					; which is word size.
+	;; These both methods works, as AX is of word size,
+	;; so assembler only stores word size data at the location.
+	Call PrintWordNumber		; Print the Passing data
+	Call PrintNewline		; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 	; jump to the stage 2 land
 	jmp STAGE_2_LOAD_ADDRESS	; 0x0500
