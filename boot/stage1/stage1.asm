@@ -50,7 +50,7 @@ FixCS:
 	call PrintNewline		; \n
 
 	; Load stage from the disk
-	mov dl, 0x80;[bPhysicalDriveNum]	; Drive number
+	mov dl, [bPhysicalDriveNum]	; Drive number
 	mov ch, 0		; Cylinder number
 	mov dh, 0		; Head number
 	mov cl, 2		; Sector starting (Indexed 1, as first sector is at index 1)
