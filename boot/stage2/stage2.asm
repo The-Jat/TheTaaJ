@@ -36,16 +36,36 @@ stage2_entry:
 	;; Receive the Fixed Known Memory Location Passed value from Stage 1
 	;; In our case the known memory location is "0x7E00"
 	;; and passed data is of 16 bit.
-	mov ax, [0x7E00]		; Read word size data from the location, without
+	; mov ax, [0x7E00]		; Read word size data from the location, without
 					; specifying size explicitly, assembler treats it as
 					; to read data of size of AX from the location which
 					; is of word size.
 	;; OR,
-	; mov word ax, [0x7E00]		; Read word size data from the location by,
+	;; mov word ax, [0x7E00]		; Read word size data from the location by,
 					; specifying size explicitly.
 	
-	call PrintWordNumber		; Print the received data
-	call PrintNewline		; \n
+	; call PrintWordNumber		; Print the received data
+	; call PrintNewline		; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Received the Stack passed value.
+	;; The value will be received in reverse order,
+	;; such that the value pushed lastly in stage 1 will be the one
+	;; which will be popped first from the stack
+	;;	|	| Top (Low Memory Area)
+	;;	|  108	|
+	;;	|-------|
+	;;	|  107	| Bottom (High Memory Area)
+	;;	---------
+	pop ax		; pop the lastly passed data, which is 108
+	call PrintWordNumber	; Print the received value from AX
+	call PrintNewline	; \n
+	
+	pop ax		; pop the first passed data, which is 107
+	call PrintWordNumber	; Print the received data from AX
+	call PrintNewline	; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 jmp $

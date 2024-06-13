@@ -77,8 +77,8 @@ FixCS:
 	;; through known fixed memory location
 	;; For our example, we will pass the data by storing
 	;; at memory "0x7E00" which is just after the bootcode.
-	mov ax, 1628 
-	mov word [0x7E00], ax		; Store the passing value at the location,
+	; mov ax, 1628
+	; mov word [0x7E00], ax		; Store the passing value at the location,
 					; by specifying size explicitly.
 	;; OR
 	;; mov [0x7E00], ax		; Store the passing value at the location
@@ -87,10 +87,36 @@ FixCS:
 					; which is word size.
 	;; These both methods works, as AX is of word size,
 	;; so assembler only stores word size data at the location.
-	Call PrintWordNumber		; Print the Passing data
-	Call PrintNewline		; \n
+	; Call PrintWordNumber		; Print the Passing data
+	; Call PrintNewline		; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Pass Data from stage 1 to stage 2 Using Stack
+	;; We will push the data in our stage 1
+	;; and pop the data from in our stage 2
+	mov ax, 107	; Set AX to the value want to pass by pushing
+	call PrintWordNumber	; Print the passing value
+	call PrintNewline	; \n
+	
+	push ax		; Push AX, which is 107 on the stack
+	
+	mov ax, 108	; Change AX to 108
+	call PrintWordNumber	; Print Changed value
+	Call PrintNewline	; \n
+	
+	push ax		; Push AX, which is 108 on the stack
+	
+	;; Here we have passed the value 107 and 108 in the stack,
+	;; such that stack is:
+	;;	|	| Top (Low Memory Area)
+	;;	|  108	|
+	;;	|-------|
+	;;	|  107	| Bottom (High Memory Area)
+	;;	---------
+	;; At receiving end they will be received in reverse order.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; jump to the stage 2 land
 	jmp STAGE_2_LOAD_ADDRESS	; 0x0500
