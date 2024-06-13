@@ -36,13 +36,16 @@ FixCS:
 
 	call ClearScreenAndResetCursor	; Clear the screen and reset the cursor
 
-	; Print the Register value in hex and decimal
-	mov ax, 1234
-	mov dx, ax
-	call PrintWordHex	; Print dx value in hex
-	call PrintNewline	; \n
-	call PrintWordNumber	; Print ax value in number
-	call PrintNewline	; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Debuggin Purpose
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Print the Register value in hex and decimal
+	; mov ax, 1234
+	; mov dx, ax
+	; call PrintWordHex	; Print dx value in hex
+	; call PrintNewline	; \n
+	; call PrintWordNumber	; Print ax value in number
+	; call PrintNewline	; \n
 
 	;Print Welcome to the Screen
 	mov si, WelcomeToStage1		; Load the address of the string into si register
@@ -59,6 +62,11 @@ FixCS:
 	mov bx, STAGE_2_LOAD_ADDRESS		; Memory address (0x500)
 	mov al, STAGE_2_SECTORS_COUNT	; 58 Number of sectors to read
 	call ReadFromDisk	; Call the routine to read from disk
+
+	; Pass Data from stage 1 to stage 2 through register
+	mov ax, 77
+	Call PrintWordNumber
+	call PrintNewline	; \n
 
 	; jump to the stage 2 land
 	jmp STAGE_2_LOAD_ADDRESS	; 0x0500

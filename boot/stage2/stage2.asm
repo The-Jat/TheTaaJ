@@ -20,9 +20,10 @@ jmp stage2_entry
 %include "boot/common/print16.inc"
 
 stage2_entry:
-cli
-	mov si, WelcomeToStage2
+	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
 	call PrintString16BIOS
+	call PrintNewline		; \n
+	call PrintWordNumber		; Print the Received AX value
 
 jmp $
 
