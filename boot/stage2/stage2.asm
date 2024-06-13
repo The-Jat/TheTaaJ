@@ -22,6 +22,10 @@ jmp stage2_entry
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
 	call PrintString16BIOS
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; We have received the passed value from stage 1
+	;; in AX
 	call PrintNewline		; \n
 	call PrintWordNumber		; Print the Received AX value
 
