@@ -49,7 +49,7 @@ PrintChar16BIOS:
 	; Restore the state of BX and AX registers
 	pop 	bx
 	pop 	ax
-ret                          ; Return from the PrintChar16BIOS routine
+ret             ; Return from the PrintChar16BIOS routine
 
 
 ; ********************************
@@ -79,59 +79,111 @@ PrintString16BIOS:
 	.PrintDone:
 		; \n
 		; Move cursor to the beginning of the next line (equivalent of \n)
-		mov ah, 0x02	; BIOS function: Set Cursor position
-		inc dh		; Move cursor down one line
-		mov dl, 0x00	; Move cursor to the beginning of the line (column 0)
-		int 0x10	; Set cursor position to (DL, DH)
-
+		;mov ah, 0x02	; BIOS function: Set Cursor position
+		;inc dh		; Move cursor down one line
+		;mov dl, 0x00	; Move cursor to the beginning of the line (column 0)
+		;int 0x10	; Set cursor position to (DL, DH)
+		;call PrintNewline
 		; Restore all general-purpose registers
 		popad
 ret  ; Return from the PrintString16BIOS routine
 
 
+; ***************************************
+; PrintNewline
+; This prints a newline, used to signify the end of a line of text and
+; the beginning of a new one.
+; It is equivalent to '\n' in C/C++
+; ***************************************
+PrintNewline:
+	pusha
+	mov ah, 0x0E            ; BIOS function to print character
+	mov al, 0x0A            ; Newline character
+	;mov bh, 0x00            ; Page number
+	;mov bl, 0x07            ; Attribute (white on black)
+	int 0x10                ; Call BIOS interrupt to print character
+	mov al, 0x0D            ; Carriage return character
+	int 0x10                ; Call BIOS interrupt to print character
+	popa
+ret
+
+
 ; ********************************
-; PrintNumber
+; PrintWordNumber
 ; IN:
-; 	- EAX: NumberToPrint
+; 	- AX: NumberToPrint
 ; ********************************
-PrintNumber:
+PrintWordNumber:
 	; Save all general-purpose registers
 	pushad
-
+	mov si, sNumberValueIs
+	call PrintString16BIOS
 	; Initialize variables
-	xor 	ebx, ebx        ; Clear EBX to use it as a counter for the number of digits
-    mov 	ecx, 10         ; Set ECX to 10, the divisor for converting number to digits
+	xor 	bx, bx        ; Clear BX to use it as a counter for the number of digits
+    	mov 	cx, 10         ; Set CX to 10, the divisor for converting number to digits
 
 	.DigitLoop:
-	    xor 	edx, edx        ; Clear EDX before division
-	    div 	ecx             ; Divide EAX by 10
-	    ; After div: EAX contains quotient, EDX contains remainder
+	    xor 	dx, dx        ; Clear DX before division
+	    div 	cx             ; Divide AX by 10
+	    ; After div: AX contains quotient, DX contains remainder
 
 	    ; Convert remainder to ASCII
-	    add 	edx, 48         ; Convert digit to ASCII ('0' = 48)
+	    add 	dx, 48         ; Convert digit to ASCII ('0' = 48)
 
 	    ; Store ASCII digit on the stack
-	    push 	edx
-	    inc 	ebx             ; Increment digit count
+	    push 	dx
+	    inc 	bx             ; Increment digit count
 
 	    ; If quotient (EAX) is zero, we're done converting digits
-	    cmp eax, 0
+	    cmp ax, 0
 	    jnz .DigitLoop       ; If EAX is not zero, repeat the loop
 
 	.PrintLoop:
 		; Pop ASCII digit from stack into EAX
-		pop 	eax
+		pop 	ax
 
 		; Print the character in EAX
 		call 	PrintChar16BIOS
 
 		; Decrease digit count in EBX
-		dec 	ebx
+		dec 	bx
 		jnz 	.PrintLoop     ; If EBX is not zero, print next digit
 
     ; Restore all general-purpose registers
     popad
-ret                       ; Return from the PrintNumber routine
+ret          ; Return from the PrintWordNumber routine
+
+
+; ********************************
+; PrintWordHex
+; IN:
+; 	- DX: Value to be printed in hex
+; ********************************
+PrintWordHex:
+	pusha
+	mov si, sHexValueIs
+	call PrintString16BIOS
+        mov cx, 4	; offset in string, counter (4 hex characters)
+        .hex_loop:
+            mov ax, dx	              ; Hex word passed in DX
+            and al, 0Fh               ; Use nibble in AL
+            mov bx, hex_to_ascii
+            xlatb                     ; AL = [DS:BX + AL]
+
+            mov bx, cx                ; Need bx to index data
+            mov [hexString+bx+1], al  ; Store hex char in string
+            ror dx, 4                 ; Get next nibble
+        loop .hex_loop 
+
+        mov si, hexString             ; Print out hex string
+        mov ah, 0Eh
+        mov cx, 6                     ; Length of string
+        .loop:
+            lodsb
+            int 10h		; Print the char at al
+        loop .loop
+        popa
+ret
 
 
 ; ********************************
@@ -165,5 +217,11 @@ ret                       ; Return from the SetTextColor routine
 ; ********************************
 
 bTextColor	db	0x0F	; b - byte sized variable
+
+hexString:	db '0x0000'
+hex_to_ascii:	db '0123456789ABCDEF'
+
+sNumberValueIs	db 'Number Value is : ', 0
+sHexValueIs	db 'Hex value is : ', 0
 
 %endif

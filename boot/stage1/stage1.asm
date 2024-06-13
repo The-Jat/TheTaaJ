@@ -36,10 +36,19 @@ FixCS:
 
 	call ClearScreenAndResetCursor	; Clear the screen and reset the cursor
 
+	; Print the Register value in hex and decimal
+	mov ax, 1234
+	mov dx, ax
+	call PrintWordHex	; Print dx value in hex
+	call PrintNewline	; \n
+	call PrintWordNumber	; Print ax value in number
+	call PrintNewline	; \n
+
 	;Print Welcome to the Screen
 	mov si, WelcomeToStage1		; Load the address of the string into si register
 	call PrintString16BIOS		; String printing function.
-	
+	call PrintNewline		; \n
+
 	; Load stage from the disk
 	mov dl, 0x80;[bPhysicalDriveNum]	; Drive number
 	mov ch, 0		; Cylinder number
