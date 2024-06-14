@@ -18,6 +18,7 @@ jmp stage2_entry
 
 ; Includes
 %include "boot/common/print16.inc"
+%include "memory.inc"	; For memory related
 
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
@@ -74,6 +75,12 @@ stage2_entry:
 	mov [bPhysicalDriveNum], al	; store the received drive number
 	call PrintWordNumber		; Print the received drive number
 	call PrintNewline		; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Detect Size of Lower (Conventional) Memory
+	call GetLowerMemorySize
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 jmp $

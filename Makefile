@@ -3,6 +3,7 @@
 # $^ = all dependencies
 
 BOOT_STAGE_INCLUDE = boot/common
+BOOT_STAGE2_INCLUDE = boot/stage2/includes
 
 all: build_dir boot run
 
@@ -13,7 +14,7 @@ stage1.bin: boot/stage1/stage1.asm
 	nasm -f bin -I $(BOOT_STAGE_INCLUDE) -o build/$@ $<
 
 stage2.bin: boot/stage2/stage2.asm
-	nasm -f bin -I $(BOOT_STAGE_INCLUDE) -o build/$@ $<
+	nasm -f bin -I $(BOOT_STAGE_INCLUDE) -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
 
 # concatenate the both stages of bootloader
 boot: stage1.bin stage2.bin
