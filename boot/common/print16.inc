@@ -116,8 +116,10 @@ ret
 PrintWordNumber:
 	; Save all general-purpose registers
 	pushad
-	mov si, sNumberValueIs
-	call PrintString16BIOS
+
+	; mov si, sNumberValueIs		; To print the sentence before the value
+	; call PrintString16BIOS
+
 	; Initialize variables
 	xor 	bx, bx        ; Clear BX to use it as a counter for the number of digits
     	mov 	cx, 10         ; Set CX to 10, the divisor for converting number to digits
@@ -161,8 +163,10 @@ ret          ; Return from the PrintWordNumber routine
 ; ********************************
 PrintWordHex:
 	pusha
-	mov si, sHexValueIs
-	call PrintString16BIOS
+
+	; mov si, sHexValueIs		; To print the sentence before the value
+	; call PrintString16BIOS
+
         mov cx, 4	; offset in string, counter (4 hex characters)
         .hex_loop:
             mov ax, dx	              ; Hex word passed in DX

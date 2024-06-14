@@ -42,7 +42,7 @@ hlt
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-sLowerMemoryCountSentence db 'Lower Memory Count : ', 0
+sLowerMemoryCountSentence db 'Lower Memory Size (In KB) : ', 0
 sInt10hFailed		db	'Int 0x10 Failed to return lower memory size', 0
 
 %endif

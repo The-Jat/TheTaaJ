@@ -125,6 +125,8 @@ FixCS:
 	;; method for small data
 	xor ax, ax		; for printing clear complete AX
 	mov al, [bPhysicalDriveNum]	; put drive number in al to be passed.
+	mov si, sPassedDriveNumber
+	call PrintString16BIOS
 	call PrintWordNumber	; Print the passing drive number
 	call PrintNewline	; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -143,6 +145,7 @@ FixCS:
 bPhysicalDriveNum	db	0	; Define variable to store disk number	
 
 WelcomeToStage1	db 'Welcome to the Stage1', 0	; Define welcome message
+sPassedDriveNumber db	'Passed Drive Number from Stage1 : ', 0
 
 ; Fill out bootloader
 times 510-($-$$) db 0		; Fill up the remaining space with zeroes

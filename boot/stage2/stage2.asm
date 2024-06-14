@@ -73,6 +73,8 @@ stage2_entry:
 	;; Receive the passed drive number from stage 1
 	;; It is passed in register AL
 	mov [bPhysicalDriveNum], al	; store the received drive number
+	mov si, sReceivedDriveNumber
+	call PrintString16BIOS
 	call PrintWordNumber		; Print the received drive number
 	call PrintNewline		; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -89,6 +91,8 @@ jmp $
 ; Variables
 ; **********
 bPhysicalDriveNum 	db	0
+
+sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 
 WelcomeToStage2 db 'Welcome to the Stage2', 0
 times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes
