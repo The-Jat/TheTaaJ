@@ -87,8 +87,8 @@ FixCS:
 					; which is word size.
 	;; These both methods works, as AX is of word size,
 	;; so assembler only stores word size data at the location.
-	; Call PrintWordNumber		; Print the Passing data
-	; Call PrintNewline		; \n
+	; call PrintWordNumber		; Print the Passing data
+	; call PrintNewline		; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -96,17 +96,17 @@ FixCS:
 	;; Pass Data from stage 1 to stage 2 Using Stack
 	;; We will push the data in our stage 1
 	;; and pop the data from in our stage 2
-	mov ax, 107	; Set AX to the value want to pass by pushing
-	call PrintWordNumber	; Print the passing value
-	call PrintNewline	; \n
+	; mov ax, 107	; Set AX to the value want to pass by pushing
+	; call PrintWordNumber	; Print the passing value
+	; call PrintNewline	; \n
 	
-	push ax		; Push AX, which is 107 on the stack
+	; push ax		; Push AX, which is 107 on the stack
 	
-	mov ax, 108	; Change AX to 108
-	call PrintWordNumber	; Print Changed value
-	Call PrintNewline	; \n
+	; mov ax, 108	; Change AX to 108
+	; call PrintWordNumber	; Print Changed value
+	; Call PrintNewline	; \n
 	
-	push ax		; Push AX, which is 108 on the stack
+	; push ax		; Push AX, which is 108 on the stack
 	
 	;; Here we have passed the value 107 and 108 in the stack,
 	;; such that stack is:
@@ -116,6 +116,17 @@ FixCS:
 	;;	|  107	| Bottom (High Memory Area)
 	;;	---------
 	;; At receiving end they will be received in reverse order.
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Pass drive number to stage 2
+	;; we will pass it in register AL, fast and easy
+	;; method for small data
+	xor ax, ax		; for printing clear complete AX
+	mov al, [bPhysicalDriveNum]	; put drive number in al to be passed.
+	call PrintWordNumber	; Print the passing drive number
+	call PrintNewline	; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; jump to the stage 2 land

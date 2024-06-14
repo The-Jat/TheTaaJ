@@ -59,13 +59,21 @@ stage2_entry:
 	;;	|-------|
 	;;	|  107	| Bottom (High Memory Area)
 	;;	---------
-	pop ax		; pop the lastly passed data, which is 108
-	call PrintWordNumber	; Print the received value from AX
-	call PrintNewline	; \n
+	; pop ax		; pop the lastly passed data, which is 108
+	; call PrintWordNumber	; Print the received value from AX
+	; call PrintNewline	; \n
 	
-	pop ax		; pop the first passed data, which is 107
-	call PrintWordNumber	; Print the received data from AX
-	call PrintNewline	; \n
+	; pop ax		; pop the first passed data, which is 107
+	; call PrintWordNumber	; Print the received data from AX
+	; call PrintNewline	; \n
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Receive the passed drive number from stage 1
+	;; It is passed in register AL
+	mov [bPhysicalDriveNum], al	; store the received drive number
+	call PrintWordNumber		; Print the received drive number
+	call PrintNewline		; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 jmp $
@@ -73,6 +81,7 @@ jmp $
 ; **********
 ; Variables
 ; **********
+bPhysicalDriveNum 	db	0
 
 WelcomeToStage2 db 'Welcome to the Stage2', 0
 times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes
