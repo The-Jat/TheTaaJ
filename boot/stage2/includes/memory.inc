@@ -38,8 +38,55 @@ ret	; return to the caller
 	call PrintNewline		; \n
 hlt
 ; ********************************
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+; ********************************
+; GetMemorySize
+; OUT:
+; 	- EAX: KB between 1 mb and 16 mb (0 on err)
+; 	- EBX: Num of 64 Kb blocks above 16 mb (0 on err)
+; ********************************
+GetMemorySize:
+	; Clear registers
+	xor 	ecx, ecx
+	xor 	edx, edx
+	
+	; Setup INT 0x15
+	mov 	eax, 0xE801		; EAX = 0xE801 (function code for getting memory size)
+	int 	0x15
+
+			; call BIOS interrupt 0x15
+
+
+    ; Check for error by examining the Carry Flag (CF)
+	jc 		.Error		; If CF is set, jump to .Error handling
+
+	; Check if the function is unsupported (AH = 0x86)
+	cmp 	ah, 0x86	; Compare AH with 0x86
+	je 		.Error		; If equal, jump to error handling
+
+	; Check if the command is invalid (AH = 0x80)
+	cmp 	ah, 0x80	; Compare AH with 0x80
+	je 		.Error		; If equal, jump to error handling
+
+	; It is possible that bios uses ECX/EDX instead
+	test 	ecx, ecx	; Test if ECX is zero
+	je 		.UseEAX		; If ECX is zero, jump to use EAX values
+
+	; If ECX is not zero, BIOS returned values in ECX and EDX
+	mov 	eax, ecx	; EAX = ECX (KB between 1 MB and 16 MB)
+	mov 	ebx, edx	; EBX = EDX (number of 64 KB blocks above 16 MB)
+
+	.UseEAX:
+		; If ECX was zero, use the values already in EAX and EBX
+    	ret                     ; Return with EAX and EBX set
+
+	.Error:
+		; In case of an error, set EAX and EBX to 0
+		mov 	eax, 0		; EAX = 0 (error indication)
+		mov 	ebx, 0		; EBX = 0 (error indication)
+	ret
+; ********************************
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ********************************
@@ -193,6 +240,47 @@ SetupMemory:
 	call	PrintString16BIOS
 	call	PrintWordNumber
 	call	PrintNewline
+	
+	; Step 2. Attempt to obtain memory size.
+	call	GetMemorySize
+	
+	;; Test the output
+	; Ok if both EAX & EBX is 0, we should not be continue
+	cmp 	ebx, 0
+	jne 	.NoError
+	cmp 	eax, 0
+	jne 	.NoError
+
+	.Error:
+		; Nooo :(
+		mov 	esi, sGetMemorySizeFailedSentence
+		call 	PrintString16BIOS
+		call	PrintNewline
+
+		; Halt
+		;call 	SystemsFail
+		cli
+		hlt
+	.NoError:
+		; Add lower 1 mb and save
+		;add 	eax, 0x400
+		mov 	dword [dataStructureObj + DataStructure.MemoryLo], eax
+		mov 	dword [dataStructureObj + DataStructure.MemoryHi], ebx
+		
+		;; Print the lower memory size
+		mov	si, sLowMemSentence
+		call	PrintString16BIOS
+		mov	dx, ax
+		call	PrintWordHex
+		call	PrintNewline
+		
+		;; Print the higher memory size
+		mov	si, sHighMemSentence
+		call	PrintString16BIOS
+		mov	dx, bx
+		call	PrintWordHex
+		call	PrintNewline
+
 
 	; Restore
 	popa
@@ -219,5 +307,10 @@ sNoMemoryMapSentence db 'No Memory Map...', 0
 
 sMemMapAddrSentence db 'Memory Map Address is: ', 0
 sMemMapLengthSentence db 'Memory Map Length is: ', 0
+
+sGetMemorySizeFailedSentence db 'Get Memory Size Failed... ', 0
+
+sLowMemSentence db 'Low Memory: ', 0
+sHighMemSentence db 'High Memory: ', 0
 
 %endif

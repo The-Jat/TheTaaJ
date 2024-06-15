@@ -87,7 +87,8 @@ stage2_entry:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;; Detect Size of Higher Memory
+	;; Detect the Size of Both the Lower and Higher Memory
+	;; with the Use of int 0x15.
 	call SetupMemory
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
