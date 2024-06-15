@@ -19,6 +19,7 @@ jmp stage2_entry
 ; Includes
 %include "boot/common/print16.inc"
 %include "memory.inc"	; For memory related
+%include "datastructure.inc"
 
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
@@ -83,6 +84,11 @@ stage2_entry:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Detect Size of Lower (Conventional) Memory
 	call GetLowerMemorySize
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Detect Size of Higher Memory
+	call SetupMemory
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 jmp $

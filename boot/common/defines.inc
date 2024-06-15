@@ -5,4 +5,6 @@
 %define		STAGE_2_SIZE			30207	; 0x7AFF - 0x500 = 0x75FF = 30,207
 %define		STAGE_2_SECTORS_COUNT	STAGE_2_SIZE/512	; 30,207 / 512(size of 1 sector) = 58
 
+%define 		MEMLOCATION_MEMORY_MAP			0x9000
+
 %endif
