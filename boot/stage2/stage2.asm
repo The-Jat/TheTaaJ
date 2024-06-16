@@ -20,6 +20,7 @@ jmp stage2_entry
 %include "boot/common/print16.inc"
 %include "memory.inc"	; For memory related
 %include "datastructure.inc"
+%include "a20.inc"	; For enabling A20
 
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
@@ -90,6 +91,11 @@ stage2_entry:
 	;; Detect the Size of Both the Lower and Higher Memory
 	;; with the Use of int 0x15.
 	call SetupMemory
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Enable A20 Gate (Line)
+	call	EnableA20Gate
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 jmp $
