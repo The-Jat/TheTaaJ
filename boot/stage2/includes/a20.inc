@@ -164,7 +164,8 @@ EnableA20Gate:
 	call    PrintString16BIOS         ; Call Print subroutine to print the failure message
 
 	; Halt
-	; call    SystemsFail   ; Call SystemsFail subroutine to handle failure
+	call    SystemFail   ; Call SystemFail subroutine to handle failure
+				; Which waits for keypress and restarts the system.
 	cli                   ; Clear interrupts
 	hlt                   ; Halt the processor
 

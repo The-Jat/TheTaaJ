@@ -18,6 +18,7 @@ jmp stage2_entry
 
 ; Includes
 %include "boot/common/print16.inc"
+%include "common.inc"	; For common thing between the two stages, SystemFail
 %include "memory.inc"	; For memory related
 %include "datastructure.inc"
 %include "a20.inc"	; For enabling A20
