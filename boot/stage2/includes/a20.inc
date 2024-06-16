@@ -1,6 +1,7 @@
 %ifndef _STAGE_2_A20_INC_
 %define _STAGE_2_A20_INC_
 
+BITS 16
 
 ; ********************************
 ; CheckA20Gate

@@ -22,6 +22,7 @@ jmp stage2_entry
 %include "memory.inc"	; For memory related
 %include "datastructure.inc"
 %include "a20.inc"	; For enabling A20
+%include "gdt.inc"	; For GDT
 
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
@@ -97,6 +98,10 @@ stage2_entry:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Enable A20 Gate (Line)
 	call	EnableA20Gate
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	call InstallGdt32
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 jmp $
