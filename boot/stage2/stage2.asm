@@ -23,6 +23,7 @@ jmp stage2_entry
 %include "datastructure.inc"
 %include "a20.inc"	; For enabling A20
 %include "gdt.inc"	; For GDT
+%include "vesa.inc"	; For VESA
 
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
@@ -103,6 +104,12 @@ stage2_entry:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	call InstallGdt32
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Get Best Video Mode and its information
+	call VesaSetup
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 jmp $
 
