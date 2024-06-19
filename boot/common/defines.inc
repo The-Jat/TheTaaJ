@@ -7,4 +7,8 @@
 
 %define 		MEMLOCATION_MEMORY_MAP			0x9000
 
+;; Kernel Loading Address
+%define 		MEMLOCATION_KERNEL_LOAD_SEGMENT			0x0000
+%define 		MEMLOCATION_KERNEL_LOAD_OFFSET			0xB000
+
 %endif

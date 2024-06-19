@@ -24,6 +24,8 @@ jmp stage2_entry
 %include "a20.inc"	; For enabling A20
 %include "gdt.inc"	; For GDT
 %include "vesa.inc"	; For VESA
+%include "disk.inc"	; For disk reading
+%include "ata.inc"	; for read disk using ata
 
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
@@ -110,6 +112,20 @@ stage2_entry:
 	call VesaSetup
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Load Flat Kernel of Size 1 KB at location 0xB000
+	xor eax, eax		; Clear out the eax
+	mov esi, eax		; Clear ou the esi
+	mov ax, MEMLOCATION_KERNEL_LOAD_SEGMENT	; 0x0000
+	mov es, ax		; Set es to 0x0000
+	mov bx, MEMLOCATION_KERNEL_LOAD_OFFSET	; 0xB000
+	mov eax, 59		; Starting sector low 32 bit (0-indexed LBA)
+	mov esi, 0		; Starting sector high 32 bit
+	mov ecx, 2		; Sector count
+	mov edx, 512		; Sector sizes in bytes
+	call ReadFromDiskUsingExtendedBIOSFunction
+
+	jmp MEMLOCATION_KERNEL_LOAD_SEGMENT:MEMLOCATION_KERNEL_LOAD_OFFSET	; Jump to the Kernel
 
 jmp $
 
@@ -117,6 +133,7 @@ jmp $
 ; Variables
 ; **********
 bPhysicalDriveNum 	db	0
+
 
 sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 
