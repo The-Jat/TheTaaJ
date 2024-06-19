@@ -25,7 +25,6 @@ jmp stage2_entry
 %include "gdt.inc"	; For GDT
 %include "vesa.inc"	; For VESA
 %include "disk.inc"	; For disk reading
-%include "ata.inc"	; for read disk using ata
 
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
@@ -149,7 +148,8 @@ stage2_entry:
 
 ;; Entry of 32-Bit world
 BITS 32
-
+; 32 Bit Includes
+%include 'print32.inc'		; For printing
 ProtectedMode:
 	; Update segment registers
 	xor eax, eax
@@ -178,38 +178,30 @@ ProtectedMode:
 	cli		; Disable the interrupt as they are no more available
     			; in real mode.
     			
-	; Now we are in protective land
-
-	;; No interrupts so, print writing to vga memory
-	mov esi, 0xb8000	; VGA memory address
-	mov byte [esi], 'P'
-	mov byte [esi+1], 0x07
+; Now we are in protective land
 	
-	mov byte [esi+2], 'r'
-	mov byte [esi+3], 0x07
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; clear the screen
+	call ClearScreen32
+	;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
-	mov byte [esi+4], 'o'
-	mov byte [esi+5], 0x07
 
-	mov byte [esi+6], 't'
-	mov byte [esi+7], 0x07
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Print welcome sentence for protected mode
+	mov esi, sProtectedModeWelcomeSentence
+	mov bl, LMAGENTA	; Foreground = Light Magenta
+	mov bh, BLACK		; Background = Black
+	call PrintString32
+	;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-	mov byte [esi+8], 'e'
-	mov byte [esi+9], 0x07
 
-	mov byte [esi+10], 'c'
-	mov byte [esi+11], 0x07
-
-	mov byte [esi+12], 't'
-	mov byte [esi+13], 0x07
-
-	mov byte [esi+14], 'e'
-	mov byte [esi+15], 0x07
-
-	mov byte [esi+16], 'd'
-	mov byte [esi+17], 0x07
-	
-	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; jmp to the kernel
+		jmp MEMLOCATION_KERNEL_LOAD_OFFSET
+	;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 jmp $
 
@@ -218,8 +210,9 @@ jmp $
 ; **********
 bPhysicalDriveNum 	db	0
 
-
+WelcomeToStage2 db 'Welcome to the Stage2', 0
 sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 
-WelcomeToStage2 db 'Welcome to the Stage2', 0
+sProtectedModeWelcomeSentence	db	'Entered the Protective Land', 0
+
 times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes

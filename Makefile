@@ -18,7 +18,7 @@ stage2.bin: boot/stage2/stage2.asm
 	nasm -f bin -I $(BOOT_STAGE_INCLUDE) -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
 
 kernel_entry.bin: kernel/kernel_entry.asm
-	nasm -f bin -o build/$@ $<
+	nasm -f bin -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
 
 # concatenate the both stages of bootloader
 boot: stage1.bin stage2.bin kernel_entry.bin
