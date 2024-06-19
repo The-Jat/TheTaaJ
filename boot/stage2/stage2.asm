@@ -125,7 +125,91 @@ stage2_entry:
 	mov edx, 512		; Sector sizes in bytes
 	call ReadFromDiskUsingExtendedBIOSFunction
 
-	jmp MEMLOCATION_KERNEL_LOAD_SEGMENT:MEMLOCATION_KERNEL_LOAD_OFFSET	; Jump to the Kernel
+;; Stop Jumping of Kernel, first we have to be in Protected Mode
+;; and then shift the kernel to 32 bit mode.
+;	jmp MEMLOCATION_KERNEL_LOAD_SEGMENT:MEMLOCATION_KERNEL_LOAD_OFFSET	; Jump to the Kernel
+	;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Entering Protective Land
+	
+	;; Enable PE (Protection Enable) Bit
+	; Enable Protected Mode
+	mov eax, cr0		; Move the current value of CR0 register into eax
+	or eax, 0x1             ; Set PE bit (bit 0) to 1
+	mov cr0, eax		; Write the modified value back to the CR0 register, 
+    				; enabling Protected Mode
+	
+
+	; Perform a far jump to clear the prefetch queue
+	jmp 0x08:ProtectedMode  ; Segment selector 0x08 (code segment)
+
+
+;; Entry of 32-Bit world
+BITS 32
+
+ProtectedMode:
+	; Update segment registers
+	xor eax, eax
+	mov ax, 0x10            ; Data segment selector 0x10
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+    
+	mov esp, 0x7BFF		; set the stack top to the 0x7BFF
+    				; The stack grows from high memory to lower memory
+    				;  --------
+    				;  |______| 0x7BFF
+    				;  |______|    
+    				;  |......|  it is growing downward as we pushes
+    				;  |______|		data
+    				;  |______|
+    				;  |      | 0x7AFF
+    
+	; Disable the all irq lines
+	mov 	al, 0xff
+	out 	0xa1, al
+	out 	0x21, al
+
+	cli		; Disable the interrupt as they are no more available
+    			; in real mode.
+    			
+	; Now we are in protective land
+
+	;; No interrupts so, print writing to vga memory
+	mov esi, 0xb8000	; VGA memory address
+	mov byte [esi], 'P'
+	mov byte [esi+1], 0x07
+	
+	mov byte [esi+2], 'r'
+	mov byte [esi+3], 0x07
+	
+	mov byte [esi+4], 'o'
+	mov byte [esi+5], 0x07
+
+	mov byte [esi+6], 't'
+	mov byte [esi+7], 0x07
+
+	mov byte [esi+8], 'e'
+	mov byte [esi+9], 0x07
+
+	mov byte [esi+10], 'c'
+	mov byte [esi+11], 0x07
+
+	mov byte [esi+12], 't'
+	mov byte [esi+13], 0x07
+
+	mov byte [esi+14], 'e'
+	mov byte [esi+15], 0x07
+
+	mov byte [esi+16], 'd'
+	mov byte [esi+17], 0x07
+	
+	
 
 jmp $
 
