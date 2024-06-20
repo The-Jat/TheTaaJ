@@ -21,19 +21,15 @@ stage2.bin: boot/stage2/stage2.asm
 
 # kernel_entry (ELF)
 kernel_entry.elf: kernel/kernel_entry.asm
-	nasm -f elf32 -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
+	nasm -f elf -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
 
 # kernel_main C (ELF)
 kernel_main.elf:
-	gcc -m32 -ffreestanding -c kernel/kernel.c -o build/kernel_main.elf
+	gcc -m32 -fno-pie -ffreestanding -c kernel/kernel_main.c -o build/kernel_main.elf
 
-# kernel.elf linked (ELF)
-kernel.elf: kernel_entry.elf kernel_main.elf
-	ld -m elf_i386 -Ttext 0xB000 -o build/kernel.elf build/kernel_entry.elf build/kernel_main.elf
-
-# kernel.bin (converted to Bin from ELF)
-kernel.bin: kernel.elf
-	objcopy -O binary build/kernel.elf build/kernel.bin
+# kernel.bin linked (BIN)
+kernel.bin: kernel_entry.elf kernel_main.elf
+	ld -m elf_i386 -Ttext 0xB000 --oformat binary -o build/kernel.bin build/kernel_entry.elf build/kernel_main.elf
 
 # write all stages to the disk image
 disk.img: stage1.bin stage2.bin kernel.bin

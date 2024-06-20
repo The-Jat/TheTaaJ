@@ -1,4 +1,4 @@
-; org 0xb000               ; Set the origin address for the code. This tells the assembler
+;org 0xb000               ; Set the origin address for the code. This tells the assembler
                          ; that the code should be loaded at memory address 0x0B00.
                          ; So all the jmp statement and string declaration offset is
                          ; calculated based on it.
