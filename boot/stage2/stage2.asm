@@ -120,7 +120,7 @@ stage2_entry:
 	mov bx, MEMLOCATION_KERNEL_LOAD_OFFSET	; 0xB000
 	mov eax, 59		; Starting sector low 32 bit (0-indexed LBA)
 	mov esi, 0		; Starting sector high 32 bit
-	mov ecx, 2		; Sector count
+	mov ecx, 26		; Sector count
 	mov edx, 512		; Sector sizes in bytes
 	call ReadFromDiskUsingExtendedBIOSFunction
 

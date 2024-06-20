@@ -1,8 +1,11 @@
-org 0xb000               ; Set the origin address for the code. This tells the assembler
+; org 0xb000               ; Set the origin address for the code. This tells the assembler
                          ; that the code should be loaded at memory address 0x0B00.
                          ; So all the jmp statement and string declaration offset is
                          ; calculated based on it.
-                         
+;; In ELF file format org directive is invalid.
+;; org directive is only for the binary output format.                     
+
+
 BITS 32                  ; Specify that the code is 32-bit.
 
 kernel_entry:            ; Label for the kernel entry point.
@@ -11,7 +14,7 @@ jmp start		; jmp after the includes
 
 ;; Include files
 %include "print32.inc"
-
+extern k_main
 start:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Clear the Screen
@@ -27,6 +30,13 @@ start:
 	call PrintString32
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Call the C kernel
+	call k_main
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
 
 jmp $		; Infinite loop to halt execution after printing the message.
 

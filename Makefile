@@ -5,35 +5,46 @@
 BOOT_STAGE_INCLUDE = boot/common
 BOOT_STAGE2_INCLUDE = boot/stage2/includes
 
-all: build_dir boot disk.img run
-#boot run
+all: build_dir disk.img run
 
+# create the build directory
 build_dir:
 	mkdir -p build
 
+# stage 1 (binary)
 stage1.bin: boot/stage1/stage1.asm
 	nasm -f bin -I $(BOOT_STAGE_INCLUDE) -o build/$@ $<
 
+# stage 2 (binary)
 stage2.bin: boot/stage2/stage2.asm
 	nasm -f bin -I $(BOOT_STAGE_INCLUDE) -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
 
-kernel_entry.bin: kernel/kernel_entry.asm
-	nasm -f bin -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
+# kernel_entry (ELF)
+kernel_entry.elf: kernel/kernel_entry.asm
+	nasm -f elf32 -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
 
-# concatenate the both stages of bootloader
-boot: stage1.bin stage2.bin kernel_entry.bin
-	cat build/stage1.bin build/stage2.bin build/kernel_entry.bin > build/boot.bin
+# kernel_main C (ELF)
+kernel_main.elf:
+	gcc -m32 -ffreestanding -c kernel/kernel.c -o build/kernel_main.elf
 
-disk.img: stage1.bin stage2.bin kernel_entry.bin
+# kernel.elf linked (ELF)
+kernel.elf: kernel_entry.elf kernel_main.elf
+	ld -m elf_i386 -Ttext 0xB000 -o build/kernel.elf build/kernel_entry.elf build/kernel_main.elf
+
+# kernel.bin (converted to Bin from ELF)
+kernel.bin: kernel.elf
+	objcopy -O binary build/kernel.elf build/kernel.bin
+
+# write all stages to the disk image
+disk.img: stage1.bin stage2.bin kernel.bin
 	dd if=/dev/zero of=build/disk.img bs=512 count=2880
 	dd if=build/stage1.bin of=build/disk.img bs=512 seek=0 conv=notrunc
 	dd if=build/stage2.bin of=build/disk.img bs=512 seek=1 conv=notrunc
-	dd if=build/kernel_entry.bin of=build/disk.img bs=512 seek=59 conv=notrunc
+	dd if=build/kernel.bin of=build/disk.img bs=512 seek=59 conv=notrunc
 
+# Test the disk image using emulator
 run:
-	# qemu-system-x86_64 -drive  format=raw,file=build/boot.bin
 	qemu-system-x86_64 -drive  format=raw,file=build/disk.img
-	#,if=ide,index=0,media=disk
 
 # Clean up generated files
 clean:
