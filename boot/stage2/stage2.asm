@@ -25,11 +25,17 @@ jmp stage2_entry
 %include "gdt.inc"	; For GDT
 %include "vesa.inc"	; For VESA
 %include "disk.inc"	; For disk reading
+%include "keyboard.inc"	; For keyboard related stuff
 
 stage2_entry:
 	mov si, WelcomeToStage2		; Print Stage 2 Welcome message
 	call PrintString16BIOS
 	call PrintNewline		; \n
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Wait for the Keyboard Key Press
+	call GetKeyInputWithBIOS
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Receive Register Passed Value from Stage 1
@@ -102,13 +108,21 @@ stage2_entry:
 	call	EnableA20Gate
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
+
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	call InstallGdt32
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
+
+
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Get Best Video Mode and its information
 	call VesaSetup
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Get key input by polling (continuous loop) the hardware
+	call GetKeyInputWithoutBIOS
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
