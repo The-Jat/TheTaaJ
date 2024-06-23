@@ -12,9 +12,14 @@ kernel_entry:            ; Label for the kernel entry point.
 
 jmp start		; jmp after the includes
 
+extern k_main
+
+extern idt_install
+extern isrs_install
+
 ;; Include files
 %include "print32.inc"
-extern k_main
+
 start:
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Clear the Screen
@@ -30,6 +35,25 @@ start:
 	call PrintString32
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Setting up IDT things
+	call idt_install
+	; Install isrs just for int 0x00, division for zero excpetion.
+	call isrs_install
+
+	; Test by invoking int 0x00
+	; int 0x00
+
+	; OR by dividing with zero
+
+	mov ax, 0x01
+	mov dx, 0x00
+	div dx		; ex/dx = 1/0, Exception (Divide by zero)
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	jmp $
 	
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,7 +66,7 @@ jmp $		; Infinite loop to halt execution after printing the message.
 
 
 ;; Put data in second sector
-times 512 - ($ - $$) db 0
+;times 512 - ($ - $$) db 0
 
 sKernelWelcomeStatement: db 'Welcome to Flat Binary 32-Bit Kernel Land.', 0
                          ; Define the welcome message string, terminated by a null byte (0).
