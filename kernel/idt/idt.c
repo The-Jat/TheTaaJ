@@ -1,4 +1,4 @@
-#include "system.h"
+#include "idt.h"
 
 /*
  * IDT Entry
