@@ -48,12 +48,11 @@ start:
 
 	; OR by dividing with zero
 
-	mov ax, 0x01
-	mov dx, 0x00
-	div dx		; ex/dx = 1/0, Exception (Divide by zero)
-	
+	;mov ax, 0x01
+	;mov dx, 0x00
+	;div dx		; ex/dx = 1/0, Exception (Divide by zero)
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	jmp $
+	;jmp $
 	
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

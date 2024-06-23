@@ -10,6 +10,8 @@ LDFLAGS = -m elf_i386 -Ttext 0xB000 --oformat binary
 
 BOOT_STAGE2_INCLUDE = ../boot/stage2/includes
 
+KERNEL_INCLUDE = includes/
+
 BUILD_DIR := build
 
 # Find all c and asm source files
@@ -32,13 +34,13 @@ Build:
 	mkdir -p build
 
 kernel.bin: $(OBJECTS)
-	ld -m elf_i386 -Ttext 0xB000 --oformat binary -o build/$@ build/kernel_entry.o build/kernel_main.o build/idt.o build/idt_asm.o build/isr.o build/isr_asm.o 
+	ld -m elf_i386 -Ttext 0xB000 --oformat binary -o build/$@ build/kernel_entry.o build/kernel_main.o build/idt.o build/idt_asm.o build/isr.o build/isr_asm.o build/vga.o build/kernel_utilities.o
 
 # Rule to compile C files
 %.o: %.c
 	@echo $<
 	@echo $@
-	gcc  -m32 -fno-pie -ffreestanding -c $< -o build/$(notdir $@)
+	gcc  -m32 -fno-pie -ffreestanding -I $(KERNEL_INCLUDE) -c $< -o build/$(notdir $@)
 
 %.o: %.asm
 	nasm -f elf32 -I $(BOOT_STAGE2_INCLUDE) $< -o build/$(notdir $@)

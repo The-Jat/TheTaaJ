@@ -1,4 +1,5 @@
-#include "idt.h"
+#include <idt.h>
+#include <kernel_utilities.h>
 
 /*
  * IDT Entry
@@ -23,20 +24,6 @@ struct idt_entry idt[256];    // Array to store 256 IDT entries
 struct idt_ptr idtp;          // Pointer to the IDT
 
 extern void idt_load();       // Assembly function to load the IDT
-
-
-/*
- * memset
- * Set `count` bytes starting at `dest` to `val`.
- */
-unsigned char *memset(unsigned char *dest, unsigned char val, int count) {
-	int i;
-	i = 0;
-	for ( ; i < count; ++i ) {
-		dest[i] = val;
-	}
-	return dest;
-}
 
 
 /*
