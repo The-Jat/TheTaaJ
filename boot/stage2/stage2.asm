@@ -137,7 +137,25 @@ stage2_entry:
 	mov ecx, 26		; Sector count
 	mov edx, 512		; Sector sizes in bytes
 	call ReadFromDiskUsingExtendedBIOSFunction
+	
+	mov si, sKernelLoadedSentence
+	call PrintString16BIOS
+	call PrintNewline
 
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; We now have to get into the 32-bit land to copy the
+	;; kernel to 0x1000000, then get back to real mode,
+	;; to do other things.
+	; Go, Go, Go
+	mov eax, cr0
+	or eax, 1
+	mov cr0, eax
+	
+	; Jump to temporary 32-bit
+	jmp CODE_DESC:Temp32Bit
+
+jmp $
 ;; Stop Jumping of Kernel, first we have to be in Protected Mode
 ;; and then shift the kernel to 32 bit mode.
 ;	jmp MEMLOCATION_KERNEL_LOAD_SEGMENT:MEMLOCATION_KERNEL_LOAD_OFFSET	; Jump to the Kernel
@@ -158,6 +176,37 @@ stage2_entry:
 
 	; Perform a far jump to clear the prefetch queue
 	jmp 0x08:ProtectedMode  ; Segment selector 0x08 (code segment)
+
+; *******************************
+;; The temporary 32 bit
+BITS 32
+;; Any 32-bit Includes
+
+Temp32Bit:
+	; Disable Interrupts
+	cli
+	
+	; Setup Segments and Stack
+	xor eax, eax
+	mov ax, DATA_DESC
+	mov ds, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+	mov es, ax
+	mov esp, 0x7BFF
+	
+	mov esi, 0xb8000
+	mov byte [esi], '3'
+	mov byte [esi+1], 0x07
+	
+	mov byte [esi+2], '2'
+	mov byte [esi+3], 0x07
+	
+	jmp $
+; *******************************
+
+
 
 
 ;; Entry of 32-Bit world
@@ -228,5 +277,6 @@ WelcomeToStage2 db 'Welcome to the Stage2', 0
 sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 
 sProtectedModeWelcomeSentence	db	'Entered the Protective Land', 0
+sKernelLoadedSentence	db	'Kernel was Loaded', 0
 
 times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes

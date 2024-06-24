@@ -36,12 +36,12 @@ start:
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+jmp $
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Setting up IDT things
-	call idt_install
+;	call idt_install
 	; Install isrs just for int 0x00, division for zero excpetion.
-	call isrs_install
+;	call isrs_install
 
 	; Test by invoking int 0x00
 	; int 0x00
@@ -57,7 +57,7 @@ start:
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Call the C kernel
-	call k_main
+;	call k_main
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 
