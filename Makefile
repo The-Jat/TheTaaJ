@@ -17,35 +17,33 @@ build_dir:
 stage1.bin: boot/stage1/stage1.asm
 	nasm -f bin -I $(BOOT_STAGE_INCLUDE) -o build/$@ $<
 
-# stage 2 (binary)
-stage2.bin: boot/stage2/stage2.asm
-	nasm -f bin -I $(BOOT_STAGE_INCLUDE) -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
+# stage 2 (elf)
+stage2.elf: boot/stage2/stage2.asm
+	nasm -f elf32 -I $(BOOT_STAGE_INCLUDE) -I $(BOOT_STAGE2_INCLUDE) -o build/$@ $<
 
+# stage 2 (c)
+elf.elf: boot/stage2/elf.c
+	gcc -m32 -fno-pie -ffreestanding -c boot/stage2/elf.c -o build/elf.elf
+print.elf: boot/stage2/print.c
+	gcc -m32 -fno-pie -ffreestanding -c $< -o build/print.elf
+
+stage2.bin: stage2.elf elf.elf print.elf
+	# ld -m elf_i386 -Ttext 0x0500 --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf
+	ld -m elf_i386 -T boot/stage2/stage2.ld --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf
+
+	
 # build kernel
-kernel.rule:
+kernel.elf:
 	@echo "building kernel"
 	$(MAKE) -C kernel
 
-# kernel_entry (ELF)
-kernel_entry.elf: kernel/kernel_entry.asm
-	nasm -f elf -I $(BOOT_STAGE2_INCLUDE) -I $(KERNEL_INCLUDES) -o build/$@ $<
-
-# kernel_main C (ELF)
-kernel_main.elf:
-	gcc -m32 -fno-pie -ffreestanding -c kernel/kernel_main.c -o build/kernel_main.elf
-
-# kernel.bin linked (BIN)
-kernel.bin: kernel kernel_entry.elf kernel_main.elf
-	# ld -m elf_i386 -Ttext 0xB000 --oformat binary -o build/kernel.bin build/kernel_entry.elf build/kernel_main.elf
-	ld -m elf_i386 -Ttext 0xB000 --oformat binary -o build/kernel.bin kernel/build/kernel_entry.o kernel/build/kernel_main.o
 
 # write all stages to the disk image
-disk.img: stage1.bin stage2.bin kernel.rule
+disk.img: stage1.bin stage2.bin kernel.elf
 	dd if=/dev/zero of=build/disk.img bs=512 count=2880
 	dd if=build/stage1.bin of=build/disk.img bs=512 seek=0 conv=notrunc
 	dd if=build/stage2.bin of=build/disk.img bs=512 seek=1 conv=notrunc
-	# dd if=build/kernel.bin of=build/disk.img bs=512 seek=59 conv=notrunc
-	dd if=kernel/build/kernel_entry.o of=build/disk.img bs=512 seek=59 conv=notrunc
+	dd if=kernel/build/kernel.elf of=build/disk.img bs=512 seek=59 conv=notrunc
 
 # Test the disk image using emulator
 run:

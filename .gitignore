@@ -3,3 +3,4 @@
 *.img
 *.sys
 /build
+/kernel/build

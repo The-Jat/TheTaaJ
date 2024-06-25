@@ -1,4 +1,3 @@
-
 .PHONY: all clean
 
 CC = gcc
@@ -27,10 +26,20 @@ ASM_OBJECTS := $(ASM_SOURCES:.asm=.o)
 # All object files
 OBJECTS := $(C_OBJECTS) $(ASM_OBJECTS)
 
-all: Build kernel.bin
+all: Build kernel_entry_executable
+
+kernel_entry.elf: kernel_entry.asm
+	nasm -f elf32 -I $(BOOT_STAGE2_INCLUDE) $< -o build/kernel_entry.elf
+
+## Generates the ELF executable type file,
+## Since the nasm -f elf32 option only generates Relocatable file.
+## But our ELF loader is capable of parsing only Executable file
+## for the time being.
+kernel_entry_executable: kernel_entry.elf
+	ld -m elf_i386 -T kernel.ld -o build/kernel.elf build/kernel_entry.elf
 
 Build:
-	@echo "building build directory"
+	@echo "building kernel build directory"
 	mkdir -p build
 
 kernel.bin: $(OBJECTS)
@@ -38,8 +47,6 @@ kernel.bin: $(OBJECTS)
 
 # Rule to compile C files
 %.o: %.c
-	@echo $<
-	@echo $@
 	gcc  -m32 -fno-pie -ffreestanding -I $(KERNEL_INCLUDE) -c $< -o build/$(notdir $@)
 
 %.o: %.asm

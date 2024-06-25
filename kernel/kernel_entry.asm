@@ -1,19 +1,20 @@
-;org 0xb000               ; Set the origin address for the code. This tells the assembler
-                         ; that the code should be loaded at memory address 0x0B00.
-                         ; So all the jmp statement and string declaration offset is
-                         ; calculated based on it.
+;org 0xb000    ; Set the origin address for the code. This tells the assembler
+               ; that the code should be loaded at memory address 0x0B00.
+               ; So all the jmp statement and string declaration offset is
+               ; calculated based on it.
 ;; In ELF file format org directive is invalid.
 ;; org directive is only for the binary output format.                     
 
 
 BITS 32                  ; Specify that the code is 32-bit.
 
+;section .text
 kernel_entry:            ; Label for the kernel entry point.
 
 jmp start		; jmp after the includes
 
+;; external defined functions
 extern k_main
-
 extern idt_install
 extern isrs_install
 
@@ -26,7 +27,6 @@ start:
 	call ClearScreen32
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Print Welcome Message
 	mov esi, sKernelWelcomeStatement
@@ -36,7 +36,9 @@ start:
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-jmp $
+;; Stop right here
+jmp $ ;; Infinite loop
+
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Setting up IDT things
 ;	call idt_install
@@ -63,10 +65,7 @@ jmp $
 
 jmp $		; Infinite loop to halt execution after printing the message.
 
-
-;; Put data in second sector
-;times 512 - ($ - $$) db 0
-
+;section .data
 sKernelWelcomeStatement: db 'Welcome to Flat Binary 32-Bit Kernel Land.', 0
                          ; Define the welcome message string, terminated by a null byte (0).
 

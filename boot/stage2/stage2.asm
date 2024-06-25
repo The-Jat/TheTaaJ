@@ -1,8 +1,12 @@
 BITS 16
 
+jmp stage2_entry
+
 %include "boot/common/defines.inc" ; contains defintion for STAGE_2_LOAD_ADDRESS
 
-ORG STAGE_2_LOAD_ADDRESS	; 0x0500
+;ORG STAGE_2_LOAD_ADDRESS	; 0x0500
+;; No need of ORG directive as we have specified the address in the
+;; Linker script And we are generating pure binary file from LD linker.
 
 ; Memory Map:
 ; 0x00000000 - 0x000004FF		Reserved
@@ -14,7 +18,6 @@ ORG STAGE_2_LOAD_ADDRESS	; 0x0500
 ; 0x0000A000 - 0x0000AFFF		Vesa Mode Map / Controller Information
 ; 0x0000B000 - 0x0007FFFF		File Loading Bay
 
-jmp stage2_entry
 
 ; Includes
 %include "boot/common/print16.inc"
@@ -156,6 +159,7 @@ stage2_entry:
 	jmp CODE_DESC:Temp32Bit
 
 jmp $
+
 ;; Stop Jumping of Kernel, first we have to be in Protected Mode
 ;; and then shift the kernel to 32 bit mode.
 ;	jmp MEMLOCATION_KERNEL_LOAD_SEGMENT:MEMLOCATION_KERNEL_LOAD_OFFSET	; Jump to the Kernel
@@ -177,10 +181,12 @@ jmp $
 	; Perform a far jump to clear the prefetch queue
 	jmp 0x08:ProtectedMode  ; Segment selector 0x08 (code segment)
 
+
 ; *******************************
 ;; The temporary 32 bit
 BITS 32
 ;; Any 32-bit Includes
+extern load_elf32
 
 Temp32Bit:
 	; Disable Interrupts
@@ -196,6 +202,11 @@ Temp32Bit:
 	mov es, ax
 	mov esp, 0x7BFF
 	
+	call load_elf32
+	cmp eax, 1
+	jne err
+	jmp 0x1000000
+	
 	mov esi, 0xb8000
 	mov byte [esi], '3'
 	mov byte [esi+1], 0x07
@@ -204,10 +215,17 @@ Temp32Bit:
 	mov byte [esi+3], 0x07
 	
 	jmp $
+	
+err:
+	mov esi, 0xb8000
+	mov byte [esi], 'E'
+	mov byte [esi+1], 0x07
+	jmp $
 ; *******************************
 
 
-
+; *******************************
+;; Permanent Protected Mode
 
 ;; Entry of 32-Bit world
 BITS 32
@@ -222,17 +240,18 @@ ProtectedMode:
 	mov fs, ax
 	mov gs, ax
 	mov ss, ax
-    
-	mov esp, 0x7BFF		; set the stack top to the 0x7BFF
-    				; The stack grows from high memory to lower memory
-    				;  --------
-    				;  |______| 0x7BFF
-    				;  |______|    
-    				;  |......|  it is growing downward as we pushes
-    				;  |______|		data
-    				;  |______|
-    				;  |      | 0x7AFF
-    
+
+	mov esp, 0x7BFF	
+			; set the stack top to the 0x7BFF
+    			; The stack grows from high memory to lower memory
+    			;  --------
+    			;  |______| 0x7BFF
+    			;  |______|    
+    			;  |......|  it is growing downward as we pushes
+    			;  |______|		data
+    			;  |______|
+    			;  |      | 0x7AFF
+
 	; Disable the all irq lines
 	mov 	al, 0xff
 	out 	0xa1, al
@@ -279,4 +298,13 @@ sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 sProtectedModeWelcomeSentence	db	'Entered the Protective Land', 0
 sKernelLoadedSentence	db	'Kernel was Loaded', 0
 
-times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes
+;times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes
+;; No need of it, as we have the assembly and C code together.
+;; Since it only pad the assembly code so either find a way
+;; to pad the merged flat binary file of assembly and c stage 2 code
+;; (can be done with linker script in ld)
+;; or left it as it is. We have 28KB stage for our stage 2.
+;; Once the stage2 code breaks the 28KB barriers then it starts behaving
+;; abnormally then understand the size barrier of stage2 is broken.
+;; It will work perfectly until the stage 2 code is below 28 KB, It is similar
+;; to the way if we padded the rest of code with 0.
