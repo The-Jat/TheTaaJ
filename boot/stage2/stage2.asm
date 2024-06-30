@@ -130,20 +130,20 @@ stage2_entry:
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Load Flat Kernel of Size 1 KB at location 0xB000
-	xor eax, eax		; Clear out the eax
-	mov esi, eax		; Clear ou the esi
-	mov ax, MEMLOCATION_KERNEL_LOAD_SEGMENT	; 0x0000
-	mov es, ax		; Set es to 0x0000
-	mov bx, MEMLOCATION_KERNEL_LOAD_OFFSET	; 0xB000
-	mov eax, 59		; Starting sector low 32 bit (0-indexed LBA)
-	mov esi, 0		; Starting sector high 32 bit
-	mov ecx, 26		; Sector count
-	mov edx, 512		; Sector sizes in bytes
-	call ReadFromDiskUsingExtendedBIOSFunction
+;	xor eax, eax		; Clear out the eax
+;	mov esi, eax		; Clear ou the esi
+;	mov ax, MEMLOCATION_KERNEL_LOAD_SEGMENT	; 0x0000
+;	mov es, ax		; Set es to 0x0000
+;	mov bx, MEMLOCATION_KERNEL_LOAD_OFFSET	; 0xB000
+;	mov eax, 59		; Starting sector low 32 bit (0-indexed LBA)
+;	mov esi, 0		; Starting sector high 32 bit
+;	mov ecx, 26		; Sector count
+;	mov edx, 512		; Sector sizes in bytes
+;	call ReadFromDiskUsingExtendedBIOSFunction
 	
-	mov si, sKernelLoadedSentence
-	call PrintString16BIOS
-	call PrintNewline
+;	mov si, sKernelLoadedSentence
+;	call PrintString16BIOS
+;	call PrintNewline
 
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -187,6 +187,7 @@ jmp $
 BITS 32
 ;; Any 32-bit Includes
 extern load_elf32
+extern ata_read_sector
 
 Temp32Bit:
 	; Disable Interrupts
@@ -201,10 +202,15 @@ Temp32Bit:
 	mov ss, ax
 	mov es, ax
 	mov esp, 0x7BFF
+
 	
-	call load_elf32
-	cmp eax, 1
-	jne err
+	call ata_read_sector
+	jmp 0xb000		; Jump to loaded binary kernel
+
+
+;	call load_elf32
+;	cmp eax, 1
+;	jne err
 	jmp 0x1000000
 	
 	mov esi, 0xb8000
