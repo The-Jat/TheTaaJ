@@ -3,6 +3,7 @@
 
 BITS 32  ;; 32 Bit Mode
 
+; Define the I/O ports for the primary and secondary ATA channels
 %define PRIMARY_ATA_DATA 0x1F0
 %define SECONDARY_ATA_DATA 0x170
 
@@ -34,9 +35,8 @@ BITS 32  ;; 32 Bit Mode
 
 
 ; ********************************
-; identify_ata_devices = This func calls the identify_device func,
-; 	for all the four ata devices that can be attached
-; 	in the different combination of parameters.
+; identify_ata_devices = This function calls the identify_device function
+; 	for all four possible ATA devices.
 ;	BX = 0, CX = 0	; Primary Channel, Master Device
 ;	BX = 0, CX = 1	; Primary Channel, Slave Device
 ;	BX = 1, CX = 0	; Secondary Channel, Master Device
@@ -69,21 +69,21 @@ ret
 
 
 ; ********************************
-; identify_device = This function detects the ATA device and print its information.
+; identify_device = This function detects the ATA device and prints its information.
 ; IN: 
 ;   - BX: 0 = PRIMARY CHANNEL, 1 = SECONDARY CHANNEL
-;   - CX: 0 = MASTER DEVICE, 	1 = SLAVE DEVICE
+;   - CX: 0 = MASTER DEVICE, 1 = SLAVE DEVICE
 ; ******************************** 
 identify_device:
 	pushad	; save cpu state
 
-	;; Test for the Primary Or Secondary
+	;; Test for the Primary or Secondary Channel
 	test bx, 0
 	jne .secondary_channel
 	
 	;;  Primary Channel (bus)
 
-	; Test for the Primary - Master Or Slave
+	; Test for the Primary - Master or Slave
 	test cx, 0
 	jne .primary_slave_device
 
@@ -101,7 +101,7 @@ identify_device:
 	mov al, SLAVE
 	out byte dx, al		; Select slave device
 	
-	;Jump to identify device command
+	; Jump to identify device command
 	jmp .identify_device
 
 .secondary_channel:
@@ -159,11 +159,15 @@ identify_device:
 .poll_device:
 	.wait_status:
 	in byte al, dx
-	test al, 0x80
-	jnz .wait_status
+	test al, 0x80	; Check BSY bit (bit 7 with zero-indexing)
+	jnz .wait_status	; Wait until BSY bit is clear
 
-	test al, 0x40
-	jz .wait_status
+	test al, 0x01		; Check ERR bit (bit 0)
+	jnz .no_device
+	
+	test al, 0x08		; Check DRQ bit (bit 3)
+	jz .no_device
+
 
 	; Read 256 words (512 bytes) of identification
 	; data from Data Register
@@ -176,6 +180,13 @@ identify_device:
 	.secondary_channel_data:
 	mov dx, SECONDARY_ATA_DATA
 	jmp .start_reading
+
+.no_device:
+	; Print "No Device" message
+	mov esi, no_device_message
+	mov ecx, 9  ; Length of "No Device"
+	call print_fixed_size_string
+	jmp .end
 
 .start_reading:
 
@@ -217,13 +228,14 @@ identify_device:
 	mov ecx, 40
 	call print_fixed_size_string
 
+.end:
 	popad
 ret
 
 
 ; ********************************
 ; print_fixed_size_string: Fixed Size String Printing Function
-; It retains the line number and start printing from next line in susequent calls
+; It retains the line number and starts printing from the next line in subsequent calls.
 ;
 ; IN: 
 ;   - ESI: Pointer to String,
@@ -233,8 +245,8 @@ print_fixed_size_string:
 	pushad
 	mov edi, [video_memory]		; 0xB8000
 
-	;; This code helps in starting from next line every time,
-	;; we call this function, but we have to increment line everytime.
+	;; This code helps in starting from the next line every time,
+	;; we call this function, but we have to increment the line every time.
 	; al = line, initially 0
 	; dl = 80*2 	; bytes in a single line
 	; al = al * dl 	; offset to the next line
@@ -246,7 +258,7 @@ print_fixed_size_string:
 	.print_next_char:
 		mov byte bl, [esi]	; Load first char in bl
 		mov byte [edi], bl	; Load char from bl to video memory's first byte
-		mov byte [edi + 1], 0x04	; Load the color to the next byte of vMem.
+		mov byte [edi + 1], 0x05	; Load the color to the next byte of vMem.
 		dec ecx			; Decrement string counter
 		cmp ecx, 0		; Check if it was the last char of string.
 		jz .done_print		; jump to .done_print, if it was the last char
@@ -259,7 +271,6 @@ print_fixed_size_string:
 	popad
 ret
 ; ********************************
-
 
 
 ; Function to copy and swap bytes
@@ -278,13 +289,14 @@ video_memory 	dd 	0xB8000
 
 cursor_line db 0
 
-identifier_data dw 256 dup(0)	; Buffer to store
-				; identification data (512 bytes)
+identifier_data dw 256 dup(0)	; Buffer to store identification data (512 bytes)
 serial_number db 20 dup(0)      ; Buffer to store the serial number
 firmware_revision db 8 dup(0)   ; Buffer to store the firmware revision
 model_number db 40 dup(0)       ; Buffer to store the model number
 
 single_line_vmem_bytes equ 80*2	; Total bytes in a single line in 80*25 (Mode 3)
 				; 80 boxes and each box is of 2 bytes
+
+no_device_message db "No Device"
 
 %endif
