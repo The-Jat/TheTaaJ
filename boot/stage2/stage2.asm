@@ -189,6 +189,12 @@ BITS 32
 extern load_elf32
 extern ata_read_sector
 
+;; Includes
+%include "ata.inc"	; For ATA interface
+
+
+
+
 Temp32Bit:
 	; Disable Interrupts
 	cli
@@ -203,15 +209,23 @@ Temp32Bit:
 	mov es, ax
 	mov esp, 0x7BFF
 
+	;; Clear the screen
+	call ClearScreen32
+
+	; Identify the ATA devices
+	call identify_ata_devices
+
+jmp $
+
 	
-	call ata_read_sector
-	jmp 0xb000		; Jump to loaded binary kernel
+;	call ata_read_sector
+;	jmp 0xb000		; Jump to loaded binary kernel
 
 
 ;	call load_elf32
 ;	cmp eax, 1
 ;	jne err
-	jmp 0x1000000
+;	jmp 0x1000000
 	
 	mov esi, 0xb8000
 	mov byte [esi], '3'
