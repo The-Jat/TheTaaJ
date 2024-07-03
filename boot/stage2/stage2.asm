@@ -193,8 +193,6 @@ extern ata_read_sector
 %include "ata.inc"	; For ATA interface
 
 
-
-
 Temp32Bit:
 	; Disable Interrupts
 	cli
@@ -211,13 +209,31 @@ Temp32Bit:
 
 	;; Clear the screen
 	call ClearScreen32
-
 	; Identify the ATA devices
 	call identify_ata_devices
 
+; Read and load dummy kernel from the primary channel, master device
+; Sector count = 2
+; starting sector (LBA) = 59
+; Destination Buffer Location = 0xB000
+	mov bx, 0x00		; Cylinder low and high byte
+				; BH = Cylinder High byte
+				; BL = Cylinder Low byte
+	mov edi, 0xb000		; Destination address to read
+	push dword 0x3b;59	; starting LBA
+	push dword 2		; Sector count
+			; |	| Higher Memory Address
+			; |-----| --> Stack Bottom | Base Pointer
+			; | 59  |
+			; |-----|
+			; | 2   |
+			; |-----| --> Stack Top | Stack Pointer
+			; |	|  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
+	call ata_read_sector_primary_master
+	jmp 0xb000	; jump to the loaded dummy kernel
 jmp $
 
-	
+
 ;	call ata_read_sector
 ;	jmp 0xb000		; Jump to loaded binary kernel
 

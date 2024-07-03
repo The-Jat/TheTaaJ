@@ -32,6 +32,165 @@ BITS 32  ;; 32 Bit Mode
 %define SLAVE 0xB0
 
 %define IDENTIFY_DEVICE_COMMAND 0xEC
+%define READ_SECTOR_COMMAND 0x20
+
+; ********************************
+; ata_read_sector_primary_master
+;	This function reads the specified sectors from the specified LBA
+;	from the primary channel, master disk.
+; IN: 
+;   - BX: Cylinder, BH (High 8 bits), BL Head (low 8 bits)
+;   - EDI: Destination Address to read sectors (Destination Buffer)
+;   - [EBP + 8] = Sector count
+;   - [EBP + 12] = Starting sector LBA
+; ******************************** 
+ata_read_sector_primary_master:
+			; Stack Grows Higher to Lower Memory)
+			; |	   | Higher Memory Address
+			; |--------| --> Stack Bottom | Base Pointer
+			; |   59   |
+			; |--------|
+			; |   2    |
+			; |--------|
+			; | return |
+			; |address |
+			; |--------| --> Stack Top | Stack Pointer
+			; |	   |	Lower Memory Address
+; Create Stack Frame
+	push ebp
+			; Stack Grows Higher to Lower Memory)
+			; |	   | Higher Memory Address
+			; |--------| --> Stack Bottom | Base Pointer
+			; |   59   |
+			; |--------|
+			; |   2    |
+			; |--------|
+			; | return |
+			; |address |
+			; |--------|
+			; |  Old   |
+			; |  EBP   |
+			; |--------| --> Stack Top | Stack Pointer 
+			; |	   |	Lower Memory Address
+
+	mov ebp, esp	; Point base pointer to the stack pointer
+
+			; Stack Grows Higher to Lower Memory)
+			; |	   | Higher Memory Address
+			; |--------| --> Stack Bottom
+			; |   59   |
+			; |--------|	[EBP + 12] = 59, Sector starting (LBA)
+			; |   2    |
+			; |--------|	[EBP  + 8] = 2, Sector count
+			; | return |
+			; |address |
+			; |--------|	[EBP + 4] = return address
+			; |  Old   | 		  ; Data is stored in 4 bytes (32-bit mode)
+			; |  EBP   |	[EBP + 0]
+			; |--------| --> Stack Top | Stack Pointer | Base Pointer
+			; |	   |	Lower Memory Address
+;mov eax, [ebp+12];0x12345678
+;call print_hx
+;jmp $
+	pushad
+	mov dx, PRIMARY_ATA_DRIVE_OR_HEAD
+	mov byte al, 0xE0
+	out dx, al
+	;in al, 0x80
+	;in al, 0x80
+	;in al, 0x80
+	;in al, 0x80
+	
+	; set the sector count
+	mov dx, PRIMARY_ATA_SECTOR_COUNT
+	mov byte al, [ebp + 8];2
+	out byte dx, al
+	
+	; sector starting number
+	mov dx, PRIMARY_ATA_SECTOR_NUMBER
+	mov al, [ebp + 12];59
+	out byte dx, al
+	
+	; cylinder low
+	mov dx, PRIMARY_ATA_CYLINDER_LOW	; Cylinder Low register
+	mov al, bl				; Cylinder low byte
+	out byte dx, al
+	
+	; cylinder high
+	mov dx, PRIMARY_ATA_CYLINDER_HIGH	; Cylinder High Register
+	mov al, bh				; Cylinder high byte
+	out byte dx, al
+	
+	; Issue READ Sectors command
+	mov dx, PRIMARY_ATA_COMMAND_AND_STATUS	; Command register
+	mov al, READ_SECTOR_COMMAND		; Read sectors command
+	out byte dx, al
+
+	; Poll the status register to check if the device is ready
+.wait_bsy_clear:
+	in al, dx
+	test al, 0x80			; Check BSY bit (bit 7)
+	jnz .wait_bsy_clear		; Wait until BSY bit is clear
+	
+	test al, 0x08			; Check DRQ bit (bit 3)
+	jz .wait_bsy_clear		; Wait until DRQ bit is set
+
+	; Read data from data port	
+;	mov cx, 256*2	; Read 1024 bytes
+;	mov di, 0xb000	; Destination address to read the sectors
+;.read_data:
+;	mov dx, PRIMARY_ATA_DATA
+;	in ax, dx	
+;	mov word [di], ax
+;	add di, 2
+;	loop .read_data
+
+
+	mov cx, 256		; cx = 256 words = 512 bytes
+	mov ax, [ebp + 8]	; ax = 2 sector
+	mul cx			; dx:ax = ax*cx = 256*2 words = 512 words = 1024 bytes
+	mov cx, ax		; cx = 512 words
+
+	mov dx, PRIMARY_ATA_DATA
+	;mov di, 0xB000	; Destination Address
+	rep insw	; Read data from port to memory
+			; Read words from port DX into ES:DI, repeat CX times
+
+	; Print read complete string
+;	mov esi, read_data_from_disk_using_ata
+;	mov ecx, 65	; length of the string
+;	call print_fixed_size_string
+	popad
+	; Destroy Stack Frame
+	pop ebp
+ret
+
+
+; ********************************
+; print_hx = This function prints the hex value of the EAX register
+;  - EAX: Hex value to be printed
+; ******************************** 
+print_hx:
+	pusha
+	mov edi, 0xb8000
+	mov ecx, 8
+.hx_loop:
+	rol eax, 4
+	mov bl, al
+	and bl, 0x0F
+	cmp bl, 10
+	jl .digit
+	add bl, 'A' - 10
+	jmp .print
+.digit:
+	add bl, '0'
+.print:
+	mov byte [edi], bl
+	mov byte [edi+1], 0x04
+	add edi,2
+	loop .hx_loop
+	popa
+ret
 
 
 ; ********************************
@@ -233,6 +392,7 @@ identify_device:
 ret
 
 
+
 ; ********************************
 ; print_fixed_size_string: Fixed Size String Printing Function
 ; It retains the line number and starts printing from the next line in subsequent calls.
@@ -298,5 +458,7 @@ single_line_vmem_bytes equ 80*2	; Total bytes in a single line in 80*25 (Mode 3)
 				; 80 boxes and each box is of 2 bytes
 
 no_device_message db "No Device"
+
+read_data_from_disk_using_ata: db "Kernel was read from the primary channel master device using ATA."
 
 %endif
