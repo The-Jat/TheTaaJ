@@ -1,4 +1,4 @@
-org 0xb000    ; Set the origin address for the code. This tells the assembler
+;org 0xb000    ; Set the origin address for the code. This tells the assembler
                ; that the code should be loaded at memory address 0x0B00.
                ; So all the jmp statement and string declaration offset is
                ; calculated based on it.
@@ -66,7 +66,7 @@ jmp $ ;; Infinite loop
 jmp $		; Infinite loop to halt execution after printing the message.
 
 ;section .data
-sKernelWelcomeStatement: db 'Welcome to Binary 32-Bit Kernel Land.', 0
+sKernelWelcomeStatement: db 'Welcome to ELF 32-Bit Kernel Land.', 0
                          ; Define the welcome message string, terminated by a null byte (0).
 
 times 1024 - ($ - $$) db 0	; Fill the rest of the 1 KB (1024 bytes) space with zeros.

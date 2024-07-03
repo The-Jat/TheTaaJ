@@ -221,7 +221,7 @@ Temp32Bit:
 				; BL = Cylinder Low byte
 	mov edi, 0xb000		; Destination address to read
 	push dword 0x3b;59	; starting LBA
-	push dword 2		; Sector count
+	push dword 9		; Sector count
 			; |	| Higher Memory Address
 			; |-----| --> Stack Bottom | Base Pointer
 			; | 59  |
@@ -230,19 +230,19 @@ Temp32Bit:
 			; |-----| --> Stack Top | Stack Pointer
 			; |	|  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
 	call ata_read_sector_primary_master
-	jmp 0xb000	; jump to the loaded dummy kernel
-jmp $
+	;jmp 0xb000	; jump to the loaded dummy kernel
+;jmp $
 
 
 ;	call ata_read_sector
 ;	jmp 0xb000		; Jump to loaded binary kernel
 
 
-;	call load_elf32
-;	cmp eax, 1
-;	jne err
-;	jmp 0x1000000
-	
+	call load_elf32
+	cmp eax, 1
+	jne err
+	jmp 0x1000000
+
 	mov esi, 0xb8000
 	mov byte [esi], '3'
 	mov byte [esi+1], 0x07
