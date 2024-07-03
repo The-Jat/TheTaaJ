@@ -46,49 +46,55 @@ BITS 32  ;; 32 Bit Mode
 ; ******************************** 
 ata_read_sector_primary_master:
 			; Stack Grows Higher to Lower Memory)
-			; |	   | Higher Memory Address
-			; |--------| --> Stack Bottom | Base Pointer
-			; |   59   |
-			; |--------|
-			; |   2    |
-			; |--------|
-			; | return |
-			; |address |
-			; |--------| --> Stack Top | Stack Pointer
-			; |	   |	Lower Memory Address
+			; |	    | Higher Memory Address
+			; |---------| --> Stack Bottom | Base Pointer
+			; | sector  |
+			; | starting|
+			; |---------|
+			; | sector  |
+			; | count   |
+			; |---------|
+			; | return  |
+			; |address  |
+			; |---------| --> Stack Top | Stack Pointer
+			; |	    |	Lower Memory Address
 ; Create Stack Frame
 	push ebp
 			; Stack Grows Higher to Lower Memory)
-			; |	   | Higher Memory Address
-			; |--------| --> Stack Bottom | Base Pointer
-			; |   59   |
-			; |--------|
-			; |   2    |
-			; |--------|
-			; | return |
-			; |address |
-			; |--------|
-			; |  Old   |
-			; |  EBP   |
-			; |--------| --> Stack Top | Stack Pointer 
-			; |	   |	Lower Memory Address
+			; |	    | Higher Memory Address
+			; |---------| --> Stack Bottom | Base Pointer
+			; | sector  |
+			; | starting|
+			; |---------|
+			; | sector  |
+			; | count   |
+			; |---------|
+			; | return  |
+			; |address  |
+			; |---------|
+			; |  Old    |
+			; |  EBP    |
+			; |---------| --> Stack Top | Stack Pointer 
+			; |	    |	Lower Memory Address
 
 	mov ebp, esp	; Point base pointer to the stack pointer
 
 			; Stack Grows Higher to Lower Memory)
-			; |	   | Higher Memory Address
-			; |--------| --> Stack Bottom
-			; |   59   |
-			; |--------|	[EBP + 12] = 59, Sector starting (LBA)
-			; |   2    |
-			; |--------|	[EBP  + 8] = 2, Sector count
-			; | return |
-			; |address |
-			; |--------|	[EBP + 4] = return address
-			; |  Old   | 		  ; Data is stored in 4 bytes (32-bit mode)
-			; |  EBP   |	[EBP + 0]
-			; |--------| --> Stack Top | Stack Pointer | Base Pointer
-			; |	   |	Lower Memory Address
+			; |	    | Higher Memory Address
+			; |---------| --> Stack Bottom
+			; | sector  |
+			; | starting|
+			; |---------|	[EBP + 12] = 59, Sector starting (LBA)
+			; | sector  |
+			; | count   |
+			; |---------|	[EBP  + 8] = 2, Sector count
+			; | return  |
+			; |address  |
+			; |---------|	[EBP + 4] = return address
+			; |  Old    | 		  ; Data is stored in 4 bytes (32-bit mode)
+			; |  EBP    |	[EBP + 0]
+			; |---------| --> Stack Top | Stack Pointer | Base Pointer
+			; |	    |	Lower Memory Address
 ;mov eax, [ebp+12];0x12345678
 ;call print_hx
 ;jmp $
@@ -147,7 +153,8 @@ ata_read_sector_primary_master:
 
 
 	mov cx, 256		; cx = 256 words = 512 bytes
-	mov ax, [ebp + 8]	; ax = 2 sector
+	mov ax, [ebp + 8]	; ax = 2 sectors for binary dummy kernel
+				; 10 sectors for ELF dummy kernel
 	mul cx			; dx:ax = ax*cx = 256*2 words = 512 words = 1024 bytes
 	mov cx, ax		; cx = 512 words
 

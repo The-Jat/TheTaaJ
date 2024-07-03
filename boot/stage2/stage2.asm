@@ -213,7 +213,8 @@ Temp32Bit:
 	call identify_ata_devices
 
 ; Read and load dummy kernel from the primary channel, master device
-; Sector count = 2
+; Sector count = 10 for dummy elf kernel,
+;		 2 for binary kernel
 ; starting sector (LBA) = 59
 ; Destination Buffer Location = 0xB000
 	mov bx, 0x00		; Cylinder low and high byte
@@ -221,16 +222,18 @@ Temp32Bit:
 				; BL = Cylinder Low byte
 	mov edi, 0xb000		; Destination address to read
 	push dword 0x3b;59	; starting LBA
-	push dword 9		; Sector count
-			; |	| Higher Memory Address
-			; |-----| --> Stack Bottom | Base Pointer
-			; | 59  |
-			; |-----|
-			; | 2   |
-			; |-----| --> Stack Top | Stack Pointer
-			; |	|  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
+	push dword 10		; Sector count
+			; |	    | Higher Memory Address
+			; |---------| --> Stack Bottom | Base Pointer
+			; | sector  |
+			; |starting |
+			; |---------|
+			; | sector  |
+			; | count   |
+			; |---------| --> Stack Top | Stack Pointer
+			; |	    |  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
 	call ata_read_sector_primary_master
-	;jmp 0xb000	; jump to the loaded dummy kernel
+	;jmp 0xb000	; jump to the loaded binary dummy kernel
 ;jmp $
 
 
