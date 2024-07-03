@@ -24,9 +24,9 @@ stage2.elf: boot/stage2/stage2.asm
 
 # stage 2 (c)
 elf.elf: boot/stage2/elf.c
-	gcc -m32 -fno-pie -ffreestanding -c boot/stage2/elf.c -o build/elf.elf
+	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c boot/stage2/elf.c -o build/elf.elf
 print.elf: boot/stage2/print.c
-	gcc -m32 -fno-pie -ffreestanding -c $< -o build/print.elf
+	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c $< -o build/print.elf
 port_io.elf: boot/stage2/port_io.c
 	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c boot/stage2/port_io.c -o build/port_io.elf
 ata.elf: boot/stage2/ata.c

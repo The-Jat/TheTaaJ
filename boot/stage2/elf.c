@@ -1,5 +1,5 @@
-#include "elf.h"
-#include "print.h"
+#include <elf.h>
+#include <print.h>
 
 
 // Define the memory start location where the ELF file is loaded
