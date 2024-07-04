@@ -8,6 +8,10 @@ unsigned short * textmemptr = (unsigned short *)0xB8000; //VGA Memory Address
 int attrib = 0x0F;
 int csr_x = 0, csr_y = 0;
 
+typedef enum {
+	true = 1,
+	false = 0
+} bool;
 
 /*
  * inportb
@@ -180,3 +184,112 @@ void puts(unsigned char * text, enum vga_color fg, enum vga_color bg) {
 	}
 }
 
+
+void placech(unsigned char c, int x, int y, int attr) {
+    // Declare a pointer to an unsigned short.
+    unsigned short *where;
+
+    // Shift the attribute byte left by 8 bits to make room for the character in the lower byte.
+    unsigned att = attr << 8;
+
+    // Calculate the memory address based on the x and y coordinates.
+    // textmemptr is assumed to be a pointer to the start of the video memory.
+    where = textmemptr + (y * 80 + x);
+
+    // Place the character and attribute at the calculated memory location.
+    *where = c | att;
+}
+
+int x = 0;
+int y = 0;
+int attr = 0x07;
+
+void set_attribute(enum vga_color bg, enum vga_color fg) {
+
+	attr = bg << 4 | fg;
+
+}
+void boot_scroll(){
+
+//copy each line to the line above
+int i;
+for ( i = 0 ; i < 24*80; i++){
+	textmemptr[i] = textmemptr[i + 80];
+}
+for(i = 24*80 ; i<25*80; i++){
+textmemptr[i] = 0x0F << 8 | ' ';
+}
+
+
+}
+void boot_print(char * str) {
+	while (*str) {
+		if (*str == '\n') {
+			for (; x < 80; ++x) {
+				placech(' ', x, y, attr);
+			}
+			x = 0;
+			y += 1;
+			if (y == 25) {
+				boot_scroll();
+				y = 24;
+			}
+		} else {
+			placech(*str, x, y, attr);
+			x++;
+			if (x == 80) {
+				x = 0;
+				y += 1;
+				if (y == 24) {
+					y = 0;
+				}
+			}
+		}
+		str++;
+	}
+}
+
+void boot_print_hex(unsigned int value) {
+	char out[9] = {0};
+	for (int i = 7; i > -1; i--) {
+		out[i] = "0123456789abcdef"[(value >> (4 * (7 - i))) & 0xF];
+	}
+	boot_print(out);
+}
+
+void boot_clear(bool useDefaultAttrb) {
+	x = 0;
+	y = 0;
+	for (int y = 0; y < 25; ++y) {
+		for (int x = 0; x < 80; ++x) {
+			if (useDefaultAttrb == true){
+				placech(' ', x, y, 0x00);
+			} else {
+				placech(' ', x, y, attr);
+			}
+		}
+	}
+}
+
+int abc = 123;
+int def = 456;
+void test(){
+	set_attribute(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE);
+	boot_clear(false);
+	boot_print("HI");
+	
+	boot_print_hex(&abc);
+	for (int i = 0; i<22; i++){
+
+	boot_print("\n");
+	boot_print_hex(def);
+	}
+	boot_print("\n");
+	boot_print("end");
+	
+	boot_print("\n");
+	boot_print("end2");
+	//boot_print("\n");
+	//boot_print("end3");
+
+}

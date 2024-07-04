@@ -189,6 +189,9 @@ BITS 32
 extern load_elf32
 extern ata_read_sector
 
+; print testing
+extern test
+
 ;; Includes
 %include "ata.inc"	; For ATA interface
 
@@ -233,9 +236,14 @@ Temp32Bit:
 			; |---------| --> Stack Top | Stack Pointer
 			; |	    |  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
 	call ata_read_sector_primary_master
-	;jmp 0xb000	; jump to the loaded binary dummy kernel
-;jmp $
 
+
+;; boot_print testing
+call test
+
+jmp $
+
+	;jmp 0xb000	; jump to the loaded binary dummy kernel
 
 ;	call ata_read_sector
 ;	jmp 0xb000		; Jump to loaded binary kernel
