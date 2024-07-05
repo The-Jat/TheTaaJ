@@ -25,6 +25,8 @@ stage2.elf: boot/stage2/stage2.asm
 # stage 2 (c)
 elf.elf: boot/stage2/elf.c
 	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c boot/stage2/elf.c -o build/elf.elf
+mem.elf: boot/stage2/mem.c
+	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c boot/stage2/mem.c -o build/mem.elf
 print.elf: boot/stage2/print.c
 	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c $< -o build/print.elf
 port_io.elf: boot/stage2/port_io.c
@@ -32,9 +34,9 @@ port_io.elf: boot/stage2/port_io.c
 ata.elf: boot/stage2/ata.c
 	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c boot/stage2/ata.c -o build/ata.elf
 
-stage2.bin: stage2.elf ata.elf elf.elf print.elf port_io.elf
+stage2.bin: stage2.elf ata.elf elf.elf print.elf port_io.elf mem.elf
 	# ld -m elf_i386 -Ttext 0x0500 --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf
-	ld -m elf_i386 -T boot/stage2/stage2.ld --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf build/port_io.elf build/ata.elf
+	ld -m elf_i386 -T boot/stage2/stage2.ld --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf build/port_io.elf build/ata.elf build/mem.elf
 
 # build kernel
 kernel.elf:

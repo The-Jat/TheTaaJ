@@ -1,295 +1,136 @@
 #include <print.h>
+#include <port_io.h>
+
+
+#define SCREEN_WIDTH 80		// Mode 3 Screen Width | Column
+#define SCREEN_HEIGHT 25	// Mode 3 Screen Height | Row
+#define VIDEO_MEMORY 0xB8000	// Video Memory in VGA mode
+
+unsigned short *videoMem = (unsigned short*) VIDEO_MEMORY;
+
+unsigned char attribute = VGA_COLOR(FG_BLACK, BG_LIGHT_GRAY);
+int row = 0;
+int column = 0;
+
 
 /*
- * Text pointer, background, foreground
- */
-unsigned short * textmemptr = (unsigned short *)0xB8000; //VGA Memory Address
-
-int attrib = 0x0F;
-int csr_x = 0, csr_y = 0;
-
-typedef enum {
-	true = 1,
-	false = 0
-} bool;
-
-/*
- * inportb
- * Read from an I/O port.
- */
-unsigned char inportb(unsigned short _port) {
-	unsigned char rv;
-	__asm__ __volatile__ ("inb %1, %0" : "=a" (rv) : "dN" (_port));
-	return rv;
-}
-
-/*
- * outportb
- * Write to an I/O port.
- */
-void outportb( unsigned short _port, unsigned char _data) {
-	__asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
-}
-
-unsigned char *memcpy(unsigned char *dest, const unsigned char *src, int count) {
-	int i;
-	i = 0;
-	for ( ; i < count; ++i ) {
-		dest[i] = src[i];
-		
-	}
-	return dest;
-}
-
-/*
- * memset
- * Set `count` bytes to `val`.
- */
-unsigned char *memset(unsigned char *dest, unsigned char val, int count) {
-	int i;
-	i = 0;
-	for ( ; i < count; ++i ) {
-		dest[i] = val;
-	}
-	return dest;
-}
-
-/*
- * memsetw
- * Set `count` shorts to `val`.
- */
-unsigned short *memsetw(unsigned short *dest, unsigned short val, int count) {
-	int i;
-	i = 0;
-	for ( ; i < count; ++i ) {
-		dest[i] = val;
-	}
-	return dest;
-}
-
-/*
- * strlen
- * Returns the length of a given `str`.
- */
-int strlen(const char *str) {
-	int i = 0;
-	while (str[i] != (char)0) {
-		++i;
-	}
-	return i;
-}
-
-/*
- * scroll
- * Scroll the screen
- */
-void scroll() {
-	unsigned blank, temp;
-	blank = 0x20 | (attrib << 8);
-	if (csr_y >= 25) {
-		/*
-		 * Move the current text chunk that makes up the screen
-		 * back in the buffer by one line.
-		 */
-		temp = csr_y - 25 + 1;
-		memcpy(textmemptr, textmemptr + temp * 80, (25 - temp) * 80 * 2);
-		/*
-		 * Set the chunk of memory that occupies
-		 * the last line of text to the blank character
-		 */
-		memsetw(textmemptr + (25 - temp) * 80, blank, 80);
-		csr_y = 25 - 1;
-	}
-}
-
-/*
- * move_csr
+ * move_cursor
  * Update the hardware cursor
  */
-void move_csr() {
+void move_cursor() {
 	unsigned temp;
-	temp = csr_y * 80 + csr_x;
+	temp = column * SCREEN_WIDTH + row;
 	
 	/*
 	 * Write stuff out.
 	 */
-	outportb(0x3D4, 14);
-	outportb(0x3D5, temp >> 8);
-	outportb(0x3D4, 15);
-	outportb(0x3D5, temp);
-}
-
-/*
- * cls
- * Clear the screen
- */
-void cls() {
-	unsigned blank;
-	int i;
-	blank = 0x20 | (attrib << 8);
-	for (i = 0; i < 25; ++i) {
-		memsetw(textmemptr + i * 80, blank, 80);
-	}
-	csr_x = 0;
-	csr_y = 0;
-	move_csr();
-}
-
-/*
- * putch
- * Puts a character to the screen
- */
-void putch(unsigned char c, unsigned short color) {
-	unsigned short *where;
-	unsigned att = color << 8;
-	if (c == 0x08) {
-		/* Backspace */
-		if (csr_x != 0) csr_x--;
-	} else if (c == 0x09) {
-		/* Tab */
-		csr_x = (csr_x + 8) & ~(8 - 1);
-	} else if (c == '\r') {
-		/* Carriage return */
-		csr_x = 0;
-	} else if (c == '\n') {
-		/* New line */
-		csr_x = 0;
-		csr_y++;
-	} else if (c >= ' ') {
-		where = textmemptr + (csr_y * 80 + csr_x);
-		*where = c | att;
-		csr_x++;
-	}
-
-	if (csr_x >= 80) {
-		csr_x = 0;
-		csr_y++;
-	}
-	scroll();
-	move_csr();
-}
-
-/*
- * puts
- * Put string to screen
- */
-void puts(unsigned char * text, enum vga_color fg, enum vga_color bg) {
-	int i;
-	int len = strlen(text);
-	
-	unsigned short color = fg | bg << 4;
-	
-	for (i = 0; i < len; ++i) {
-		putch(text[i], color);
-	}
+	outb(0x3D4, 14);
+	outb(0x3D5, temp >> 8);
+	outb(0x3D4, 15);
+	outb(0x3D5, temp);
 }
 
 
-void placech(unsigned char c, int x, int y, int attr) {
-    // Declare a pointer to an unsigned short.
-    unsigned short *where;
+void set_attribute(enum VGA_BackgroundColor bg, enum VGA_ForegroundColor fg) {
 
-    // Shift the attribute byte left by 8 bits to make room for the character in the lower byte.
-    unsigned att = attr << 8;
-
-    // Calculate the memory address based on the x and y coordinates.
-    // textmemptr is assumed to be a pointer to the start of the video memory.
-    where = textmemptr + (y * 80 + x);
-
-    // Place the character and attribute at the calculated memory location.
-    *where = c | att;
-}
-
-int x = 0;
-int y = 0;
-int attr = 0x07;
-
-void set_attribute(enum vga_color bg, enum vga_color fg) {
-
-	attr = bg << 4 | fg;
-
-}
-void boot_scroll(){
-
-//copy each line to the line above
-int i;
-for ( i = 0 ; i < 24*80; i++){
-	textmemptr[i] = textmemptr[i + 80];
-}
-for(i = 24*80 ; i<25*80; i++){
-textmemptr[i] = 0x0F << 8 | ' ';
+	attribute = bg | fg;
 }
 
 
+void boot_scroll() {
+    // Scroll up by copying each line up one row
+    for (int i = 0; i < SCREEN_HEIGHT - 1; ++i) {
+        for (int j = 0; j < SCREEN_WIDTH; ++j) {
+            videoMem[i * SCREEN_WIDTH + j] = videoMem[(i + 1) * SCREEN_WIDTH + j];
+        }
+    }
+
+    // Clear the last line
+    for (int j = 0; j < SCREEN_WIDTH; ++j) {
+        videoMem[(SCREEN_HEIGHT - 1) * SCREEN_WIDTH + j] = (attribute << 8) | ' ';
+    }
 }
-void boot_print(char * str) {
-	while (*str) {
-		if (*str == '\n') {
-			for (; x < 80; ++x) {
-				placech(' ', x, y, attr);
-			}
-			x = 0;
-			y += 1;
-			if (y == 25) {
-				boot_scroll();
-				y = 24;
-			}
-		} else {
-			placech(*str, x, y, attr);
-			x++;
-			if (x == 80) {
-				x = 0;
-				y += 1;
-				if (y == 24) {
-					y = 0;
-				}
-			}
-		}
-		str++;
-	}
+
+
+void boot_clear_screen() {
+    unsigned short blank = (attribute << 8) | ' ';
+    for (int row = 0; row < SCREEN_HEIGHT; ++row) {
+        for (int column = 0; column < SCREEN_WIDTH; ++column) {
+            videoMem[row * SCREEN_WIDTH + column] = blank;
+        }
+    }
+
+// Reset global row and column to 0.    
+    row = 0;
+    column = 0;
+    move_cursor();
 }
+
+void boot_print_char_at(unsigned char c, int row, int col) {
+
+	// Get Offset by row and column
+	int offset = row * SCREEN_WIDTH + col;
+
+	videoMem[offset] = (attribute << 8) | c;
+}
+
+
+void boot_print(unsigned char *str) {
+    while (*str) {
+        if (*str == '\n') {
+            // Move to the next line and reset column
+            row++;
+            column = 0;
+        } else {
+            // Print character at current position
+            boot_print_char_at(*str, row, column);
+            column++;
+            if (column >= SCREEN_WIDTH) {
+                // Move to the next line if the end of the current line is reached
+                column = 0;
+                row++;
+            }
+        }
+
+        // Scroll the screen if necessary
+        if (row >= SCREEN_HEIGHT) {
+        	// Either scroll or do wraparound
+            boot_scroll();
+            row = SCREEN_HEIGHT - 1;
+        }
+
+        str++;
+    }
+}
+
 
 void boot_print_hex(unsigned int value) {
-	char out[9] = {0};
-	for (int i = 7; i > -1; i--) {
-		out[i] = "0123456789abcdef"[(value >> (4 * (7 - i))) & 0xF];
-	}
-	boot_print(out);
+    char hex_chars[] = "0123456789ABCDEF";
+    char hex_str[9]; // 8 hex digits + null terminator
+    hex_str[8] = '\0'; // Null terminator
+
+    for (int i = 7; i >= 0; --i) {
+        hex_str[i] = hex_chars[value & 0xF];
+        value >>= 4;
+    }
+
+    boot_print(hex_str);
 }
 
-void boot_clear(bool useDefaultAttrb) {
-	x = 0;
-	y = 0;
-	for (int y = 0; y < 25; ++y) {
-		for (int x = 0; x < 80; ++x) {
-			if (useDefaultAttrb == true){
-				placech(' ', x, y, 0x00);
-			} else {
-				placech(' ', x, y, attr);
-			}
-		}
+
+void init_print_stage2() {
+
+	set_attribute(BG_LIGHT_GRAY, FG_MAGENTA);
+	boot_clear_screen();
+
+	boot_print("Welcome to the console.");
+/*	boot_print("\n");
+
+	boot_print("second line.");
+
+	for(int i=0; i<24; i++){
+		boot_print("\n");
+		boot_print_hex(i);
 	}
-}
-
-int abc = 123;
-int def = 456;
-void test(){
-	set_attribute(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLUE);
-	boot_clear(false);
-	boot_print("HI");
-	
-	boot_print_hex(&abc);
-	for (int i = 0; i<22; i++){
-
-	boot_print("\n");
-	boot_print_hex(def);
-	}
-	boot_print("\n");
-	boot_print("end");
-	
-	boot_print("\n");
-	boot_print("end2");
-	//boot_print("\n");
-	//boot_print("end3");
-
+*/
 }

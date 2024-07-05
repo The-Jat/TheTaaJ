@@ -1,5 +1,6 @@
 #include <elf.h>
 #include <print.h>
+#include <mem.h>
 
 
 // Define the memory start location where the ELF file is loaded
@@ -8,7 +9,7 @@
 
 
 int load_elf32() {
-	puts("load_elf32", VGA_COLOR_BLACK, VGA_COLOR_LIGHT_RED);
+	//puts("load_elf32", VGA_COLOR_BLACK, VGA_COLOR_LIGHT_RED);
 
 	Elf32_Header *header = (Elf32_Header *)KERNEL_LOAD_START;
 	if (header->e_ident[0] != ELFMAG0 ||
@@ -16,7 +17,7 @@ int load_elf32() {
 	    header->e_ident[2] != ELFMAG2 ||
 	    header->e_ident[3] != ELFMAG3) {
 		// ERROR not an ELF File
-		puts("load_elf32, Not an ELF File", VGA_COLOR_BLACK, VGA_COLOR_LIGHT_RED);
+		//puts("load_elf32, Not an ELF File", VGA_COLOR_BLACK, VGA_COLOR_LIGHT_RED);
 		return 0;
 	}
 	
@@ -35,10 +36,10 @@ int load_elf32() {
 		unsigned char *dst = (unsigned char *)phdr->p_vaddr;
 
 		// Copy the segment to the virtual address
-		memcpy(dst, src, phdr->p_filesz);
+		memcpyb(dst, src, phdr->p_filesz);
             
 		// Zero out the rest of the segment if p_memsz > p_filesz
-		memset(dst + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
+		memsetb(dst + phdr->p_filesz, 0, phdr->p_memsz - phdr->p_filesz);
 	}
     }
     

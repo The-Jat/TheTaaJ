@@ -189,8 +189,8 @@ BITS 32
 extern load_elf32
 extern ata_read_sector
 
-; print testing
-extern test
+; stage2 printing
+extern init_print_stage2
 
 ;; Includes
 %include "ata.inc"	; For ATA interface
@@ -238,8 +238,8 @@ Temp32Bit:
 	call ata_read_sector_primary_master
 
 
-;; boot_print testing
-call test
+;; initialize print
+call init_print_stage2
 
 jmp $
 
