@@ -49,7 +49,7 @@ disk.img: stage1.bin stage2.bin kernel.elf
 	dd if=/dev/zero of=build/disk.img bs=512 count=2880
 	dd if=build/stage1.bin of=build/disk.img bs=512 seek=0 conv=notrunc
 	dd if=build/stage2.bin of=build/disk.img bs=512 seek=1 conv=notrunc
-	dd if=kernel/build/kernel_entry_exec.elf of=build/disk.img bs=512 seek=59 conv=notrunc
+	dd if=kernel/build/kernel_entry.bin of=build/disk.img bs=512 seek=59 conv=notrunc
 
 # Test the disk image using emulator
 run:

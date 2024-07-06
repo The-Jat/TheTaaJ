@@ -26,12 +26,16 @@ ASM_OBJECTS := $(ASM_SOURCES:.asm=.o)
 # All object files
 OBJECTS := $(C_OBJECTS) $(ASM_OBJECTS)
 
-all: Build kernel_entry_exec.elf
+all: Build kernel_entry.bin
+
+# kernel_entry.bin
+kernel_entry.bin: kernel_entry.asm
+	nasm -f bin -I $(BOOT_STAGE2_INCLUDE) $< -o build/kernel_entry.bin 
 
 # kernel entry in binary
 kernel_entry_exec.elf: kernel_entry.asm
 	nasm -f elf -I $(BOOT_STAGE2_INCLUDE) $< -o build/kernel_entry_relocatable.elf
-	ld -m elf_i386 -Ttext 0x1000000 -o build/kernel_entry_exec.elf build/kernel_entry_relocatable.elf
+	ld -m elf_i386 -Ttext 0xb000 -o build/kernel_entry_exec.elf build/kernel_entry_relocatable.elf
 
 # kernel entry in elf
 kernel_entry.elf: kernel_entry.asm

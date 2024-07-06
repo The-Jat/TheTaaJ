@@ -192,6 +192,8 @@ extern ata_read_sector
 ; stage2 printing
 extern init_print_stage2
 
+extern detect_ata_devices
+
 ;; Includes
 %include "ata.inc"	; For ATA interface
 
@@ -240,6 +242,11 @@ Temp32Bit:
 
 ;; initialize print
 call init_print_stage2
+
+;;Detect ATA devices
+
+call detect_ata_devices
+jmp 0xb000
 
 jmp $
 

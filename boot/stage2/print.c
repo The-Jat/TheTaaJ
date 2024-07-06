@@ -123,7 +123,7 @@ void init_print_stage2() {
 	set_attribute(BG_LIGHT_GRAY, FG_MAGENTA);
 	boot_clear_screen();
 
-	boot_print("Welcome to the console.");
+	boot_print("Welcome to the console.\n");
 /*	boot_print("\n");
 
 	boot_print("second line.");
