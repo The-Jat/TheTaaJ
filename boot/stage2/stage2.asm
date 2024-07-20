@@ -228,7 +228,7 @@ Temp32Bit:
 	mov edi, 0xb000		; Destination address to read
 	push dword 0x3b;59	; starting LBA
 	push dword 10		; Sector count
-			; |	    | Higher Memory Address
+			; |         | Higher Memory Address
 			; |---------| --> Stack Bottom | Base Pointer
 			; | sector  |
 			; |starting |

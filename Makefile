@@ -2,17 +2,21 @@
 # $< = first dependency
 # $^ = all dependencies
 
+# directory variables
+BUILD_DIR = build
+ISO_DIR = iso
+
+# include variables
 BOOT_STAGE_INCLUDE = boot/common
 BOOT_STAGE2_INCLUDE = boot/stage2/includes
 BOOT_STAGE2_C_INCLUDE = boot/stage2/c_includes
-
 KERNEL_INCLUDES = kernel/idt
 
-all: build_dir disk.img run
+all: build_dir image.iso run
 
 # create the build directory
 build_dir:
-	mkdir -p build
+	mkdir -p $(BUILD_DIR)
 
 # stage 1 (binary)
 stage1.bin: boot/stage1/stage1.asm
@@ -43,6 +47,15 @@ kernel.elf:
 	@echo "building kernel"
 	$(MAKE) -C kernel
 
+# ISO9660
+image.iso: stage1.bin
+	mkdir -p $(ISO_DIR)/
+	cp $(BUILD_DIR)/stage1.bin $(ISO_DIR)/
+	cp ab.txt $(ISO_DIR)/
+	# cp $(BUILD_DIR)/loader.bin $(ISO_DIR)/
+
+	xorriso -as mkisofs -R -J -b stage1.bin -no-emul-boot -boot-load-size 4 -o $@ $(ISO_DIR)
+
 
 # write all stages to the disk image
 disk.img: stage1.bin stage2.bin kernel.elf
@@ -53,9 +66,14 @@ disk.img: stage1.bin stage2.bin kernel.elf
 
 # Test the disk image using emulator
 run:
-	qemu-system-x86_64 -drive  format=raw,file=build/disk.img
+	# from disk image
+	# qemu-system-x86_64 -drive  format=raw,file=build/disk.img
+	
+	# from iso image
+	qemu-system-x86_64 -cdrom image.iso
 
 # Clean up generated files
 clean:
-	rm -rf build
+	rm -rf $(BUILD_DIR)
+	rm -rf $(ISO_DIR)
 	$(MAKE) -C kernel clean

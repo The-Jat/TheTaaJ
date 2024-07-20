@@ -2,5 +2,7 @@
 *.bin
 *.img
 *.sys
+*.iso
 /build
 /kernel/build
+/iso
