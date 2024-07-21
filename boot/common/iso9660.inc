@@ -5,7 +5,7 @@
 					; read the Volume descriptors in memory not in
 					; buffer (fixed size buffer) in the code.
 
-%define FILE_LOADING_AREA 0xCC00;0xB000	; It is the file loading area in memory map
+;%define FILE_LOADING_AREA 0xCC00	; It is the file loading area in memory map
 %define ROOT_DIRECTORY_ENTRY_LOCATION 0x90000	; It is the subsystem memory area
 
 
@@ -159,7 +159,6 @@ Read_Root_Directory_Entry:
 
 	xor cx, cx
 	xor dx, dx
-	;mov cx, 10
 	mov byte cl, es:[si + 32]	; get the file identifier length.
 	mov byte dx, cx
 	call PrintWordHex
@@ -184,26 +183,56 @@ ret
 
 
 ; **************************
-; Reads the Root Directory Entry which should be pointed
-; by `SI`. It scans all the entries of the root directory
-; and prints the identifier(name) of one and all.
+; Find_and_Load_File_from_Root()
+; Reads the Root Directory Entry which should be pointed by ES and SI, as
+; SUBSYSTEM_MEM_SEGEMENT:SUBSYSTEM_MEM_OFFSET.
+; Then scan for the file with identifier pointed by AX of length in BX.
+; If found load it at location mentioned by FS and DI, and prints the content of 
+; loaded file.
+;
 ; IN:
+;	- AX Address of File Identifier, the file to search for (in capital letters)
+;
+;	- ES Segment of Root Directory Entry
 ; 	- SI Root Directory Entry
+;
+;	- FS Segment of File Loading Address
+;	- DI Offset of File Loading Address
+;
 ; LOCAL VARIABLE:
 ;	VAR1 = [bp - 4] = Address of the Current Directory entry.
 ;	VAR2 = [bp - 8] = Found file LBA.
 ;	VAR3 = [bp - 12] = Sector rounded off file size.
+;	VAR4 = [bp - 16] = Segment of Root Directory Entry.
+;	VAR5 = [bp - 20] = Offset of Root Directory Entry.
+;	VAR6 = [bp - 24] = Segment of File Read
+;	VAR7 = [bp - 28] = Offset of File Read
+;	VAR8 = [bp - 32] = File Identifier
+;	VAR9 = [bp - 36] = File Identifier Length for comparison
 ; **************************
 Find_and_Load_File_from_Root:
 	pusha		; save the state
 	push bp		; Save old base pointer
 	mov bp, sp	; Set new base pointer
-	sub sp, 12	; Allocate 8 bytes for local variables
-			; 2 local variables of size 4 bytes each
+	sub sp, 36	; Allocate 36 bytes for local variables
+			; 9 local variables of size 4 bytes each
+
+;; Store parameters in local variables
+	mov word [bp - 36], cx	; store the file identifier length
+	mov word [bp - 32], ax	; store the file identifier address
 	mov word [bp - 4], si	; store the address of first entry
-				; of Root Directory Entries.
-mov ax, SUBSYSTEM_MEM_SEGEMENT
-mov es, ax
+				; of Root Directory Entries, it will be updated to
+				; point to next entry during scanning.
+
+	; Segment and Offset of the root directory record.
+	mov word [bp - 16], es	; Segment of RDR (Root Directory Record)
+	mov word [bp - 20], si	; Offset of RDR
+
+	; Segment and Offset of the file loading area
+	mov word [bp - 24], fs	; Segment of the File loading area
+	mov word [bp - 28], di	; Offset of the File loading area
+
+
 	; Print the function job message
 	; SI - is needy for the function so push the initial state into the stack
 	; and pop after printing the string. Thus storing the initial value.
@@ -213,6 +242,12 @@ mov es, ax
 	call PrintNewline
 	pop si
 
+	;; set es and si to the Root Directory Record's segment and offset respectively.
+	xor ax, ax
+	mov word ax, [bp - 16]	; Segment of RDR
+	mov es, ax
+	mov word si, [bp - 20]	; Offset of RDR
+
 .iterate_entry:
 
 	xor ax, ax		; Clear out the ax register
@@ -220,7 +255,6 @@ mov es, ax
 				; At Offset 0 is length of the record.
 				; It should be non zero, if zero means no valid record.
 	test al, al
-	
 	jz .didnt_find		; Reached the end of the directory entry list
 				; and didnt find the file
 
@@ -246,8 +280,10 @@ mov es, ax
 	mov di, si	; DI and SI points to the Directory Entry Record
 	add di, 33	; add offset 33, which is the start of the file identifier
 			; DI, now points to the file identifier beginning.
-	mov cx, 6	; The length of the file identifier.
-	lea si, [file_identifier]	; Load SI to the identifier of the required file.
+	mov word cx, [bp - 36]	; length of the file identifier.
+	;mov cx, 6	; The length of the file identifier.
+	mov word si, [bp - 32]	; Load SI to the identifier of the required file.
+	;lea si, [file_identifier]
 	repe cmpsb	; Keep checking the SI and DI for the match.
 			; if the length of the file identifier in both DI and SI matches,
 			; then we have the required file, else jump to the next
@@ -257,7 +293,7 @@ mov es, ax
 
 	;; Found the file
 
-	mov si, [bp-4]	; Store the current Directory Entry Record in the Local variable.
+	mov si, [bp - 4]	; Get the Current Root Directory Record in si
 
 .got_file:
 	;; got the file
@@ -277,9 +313,6 @@ mov es, ax
 	mov dword [bp - 8], eax		; Store the File LBA
 					; to second local variable.
 
-	; Read the file at the FILE_LOADING AREA which is
-	; 0x0500
-	
 	; Save File Data Length in local variable
 	xor eax, eax
 	mov byte ax, es:[si+ 10]	; Data length of the file in LSB
@@ -289,16 +322,18 @@ mov es, ax
 	mov dword [bp - 12], eax
 
 	;; Prints the Data length
-	 push si
-	 mov si, sLengthOfFile
-	 call PrintString16BIOS
-	 call PrintWordNumber
-	 call PrintNewline
-	 pop si
+	; push si
+	; mov si, sLengthOfFile
+	; call PrintString16BIOS
+	; call PrintWordNumber
+	; call PrintNewline
+	; pop si
 
-	mov ax, 0x0000
-	mov es, ax		; Zero the extra segment.
-	mov bx, FILE_LOADING_AREA ; 0xB000
+	;; Update the es and bx for the segment and offset of the file loading area
+	;	from the local variable.
+	mov word ax, [bp - 24];0x0000	; Segment of the File Loading Area
+	mov es, ax
+	mov word bx, [bp - 28]; Offset for the File Loading Area ; 0xB000
 
 	;; Roundoff the size to the 2048 which is the sector size.
 	; i.e if the data length is less than 2048, then sector to load should be
@@ -324,19 +359,23 @@ mov es, ax
 	mov edx, 2048	; Sector sizes in bytes (1 sector = 2048 in ISO 9660)
 	call ReadFromDiskUsingExtendedBIOSFunction
 
-;jmp FILE_LOADING_AREA
-
 	;; Tell user about displaying the content of the file.
 	mov si, sPrintingTheFileContent
 	call PrintString16BIOS
 	call PrintNewline
 
+	push ds		; store the ds state
+	mov ax, [bp - 24]	; FILE_LOADING_AREA_MEM_SEGMENT
+	mov ds, ax	; set the ds to segment because lodsb in PrintString16BIOS function
+			; uses the ds:si pointed string to load in AL.
+			; TODO: Can we use it as es:si, so that ds should be untouched.
 	;; Print the contents of the file.
-	mov si, FILE_LOADING_AREA	; 0xB000
+	mov si, [bp - 28]; FILE_LOADING_AREA_MEM_OFFSET
 					; Prints the data from the 
 					; file loaded area.
 	call PrintString16BIOS
 	call PrintNewline
+	pop ds		; restore the ds state
 
 	; We are done here reading the contents of the file.
 	jmp .reading_done
@@ -368,7 +407,7 @@ mov es, ax
 	call PrintNewline
 
 .reading_done:
-	add sp, 8	; Clear local variables
+	add sp, 36	; Clear local variables
 	mov sp, bp	; Reset Stack pointer
 	pop bp		; Restore old base pointer
 	popa 	; restore the state
@@ -381,12 +420,10 @@ ret
 sLengthOfFileIdentifierStatement: db 'Length of the File Identifier is (in bytes): ', 0
 sLengthOfFile: db 'Length of the File (in bytes): ', 0
 sUnpaddedSizeStatement: db 'Un-Padded Size of Bootloader (bytes): ', 0
-sFindAndLoadFileStatement: db 'Find and Load the file.', 0
+sFindAndLoadFileStatement: db '[Find_and_Load_File_from_Root] Finding and Loading the file from root directory...', 0
 sFoundTheFile: db 'Found the file.', 0
 sPrintingTheFileContent: db 'Printing the content of the file.', 0
 sDidntFindTheFile: db 'Didnt find the file.', 0
-file_identifier: db 'AB.TXT', 0	;'AB.TXT', 0
-
 
 
 dwVolumeDescriptorStartingSector dd 16	;; starting sector where the volume descriptor resides.
@@ -398,6 +435,5 @@ sValidISODiskIdentifierString: db 'It`s valid ISO Disk Identifier.', 0
 sVolumeDescriptorTypeStatement: db 'Volume Descriptor Type = ', 0
 sGotPVDStatement: db 'We got the PVD.', 0
 
-;sItsDirectoryStatement: db 'Its a directory.', 0
 iso_id db 'CD001'
 %endif

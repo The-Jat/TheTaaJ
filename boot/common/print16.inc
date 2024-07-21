@@ -65,7 +65,7 @@ PrintString16BIOS:
 
 	; Loop to process each character in the string
 	.cLoop16BIOS:
-		; Load the next byte from the string (pointed to by SI) into AL
+		; Loads the next byte from the string pointed by DS:SI into AL
 		lodsb
 
 		; Check if the loaded byte is NULL (end of string)

@@ -27,6 +27,8 @@ jmp main
 
 %define SUBSYSTEM_MEM_SEGEMENT 0x8000
 %define SUBSYSTEM_MEM_OFFSET 0x00
+%define FILE_LOADING_AREA_MEM_SEGMENT 0xCC00
+%define FILE_LOADING_AREA_MEM_OFFSET 0x0000	; It is the file loading area in memory map
 
 ;; Note: In order to access the memory above 0xFFFF, we need to use the combination of
 ;;	segment: offset, such that by default es is set to 0x00 and with this
@@ -88,6 +90,7 @@ FixCS:
 	call PrintNewline		; \n
 
 
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Calculate and print the actual code size of stage1
 	; The actual code is without padding, from start to the right before the
 	; ending times statement.
@@ -105,24 +108,46 @@ FixCS:
 	call PrintString16BIOS
 	call PrintWordNumber
 	call PrintNewline
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; calculate and print the size of PVD structure, for debugging purpose only.
 	; It should be 2048 bytes
 	; mov ax, PrimaryVolumeDescriptor.PVD_End - PrimaryVolumeDescriptor
 	; call PrintWordNumber
 	; call PrintNewline	; '\n'
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; Read the ISO 9660
-call Read_volume_descriptors
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; ISO 9660 things...
+	; Read the ISO 9660
+	call Read_volume_descriptors
+	;; TODO, there should be way to check for the success and failure of above function
+	;	on return, because the below functions depends on it.
 
-mov si, SUBSYSTEM_MEM_OFFSET;ROOT_DIRECTORY_ENTRY_LOCATION  ; 0x9000	; Memory Address where the Root Directory Entries (Record) is read.
+	; Search for the file whose name is stored at SampleTextFileIdentifier location
+	; and load it at FILE_LOADING_AREA_MEM_SEGMENT:FILE_LOADING_AREA_MEM_OFFSET
+	; and print its content.
 
+	;; Segment of Root Directory Record (Entry) in es
+	xor eax, eax
+	mov ax, SUBSYSTEM_MEM_SEGEMENT	;
+	mov es, ax
+	;; Offset of Root Directory Record (Entry) in si
+	mov si, SUBSYSTEM_MEM_OFFSET	; 0x0000
 
-xor eax, eax
-mov ax, SUBSYSTEM_MEM_SEGEMENT
-mov es, ax
-call Find_and_Load_File_from_Root
-;call Read_Root_Directory_Entry
+	;; Segment of file load in fs
+	xor bx, bx
+	mov bx, FILE_LOADING_AREA_MEM_SEGMENT	; 0xCC00
+	mov fs, bx
+	;; Offset of file load in di
+	mov di, FILE_LOADING_AREA_MEM_OFFSET	; 0x0000
+
+	mov ax, SampleTextFileIdentifier
+	mov cx, SampleTextFileIdentifierLength
+	call Find_and_Load_File_from_Root
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 jmp $
 
 	; Load stage from the disk
@@ -221,6 +246,14 @@ WelcomeToStage1	db 'Welcome to the Stage1', 0	; Define welcome message
 sPassedDriveNumber db	'Passed Drive Number from Stage1 : ', 0
 sActualStage1SizeStatement db 'Actual size of the stage1 code (without padding in bytes): ', 0
 sPaddedStage1SizeStatement db 'Padded size of the stage1 code (with padding in bytes): ', 0
+
+;; Sample Text File
+SampleTextFileIdentifier: db 'AB.TXT', 0
+SampleTextFileIdentifierLength equ $ - SampleTextFileIdentifier - 1	; -1 is for the null terminator 
+
+;; Stage 2 Bin File
+Stage2FileIdentifier: db 'STAGE2.BIN', 0
+Stage2FileIdentifierLength equ $ - Stage2FileIdentifier - 1	; -1 is for the null terminator 
 
 ; Fill out bootloader
 ;times 510-($-$$) db 0		; Fill up the remaining space with zeroes
