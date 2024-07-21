@@ -24,6 +24,8 @@ jmp main
 ; 0x000C8000 - 0x000EFFFF	160 KB BIOS Expansion
 ; 0x000F0000 - 0x000FFFFF	64 KB Motherboard BIOS
 
+%define STAGE2_AREA_SEGMENT	0x0000
+%define STAGE2_AREA_OFFSET	0x0500
 
 %define SUBSYSTEM_MEM_SEGEMENT 0x8000
 %define SUBSYSTEM_MEM_OFFSET 0x00
@@ -138,17 +140,15 @@ FixCS:
 
 	;; Segment of file load in fs
 	xor bx, bx
-	mov bx, FILE_LOADING_AREA_MEM_SEGMENT	; 0xCC00
+	mov bx, STAGE2_AREA_SEGMENT	; 0x0000
 	mov fs, bx
 	;; Offset of file load in di
-	mov di, FILE_LOADING_AREA_MEM_OFFSET	; 0x0000
+	mov di, STAGE2_AREA_OFFSET	; 0x0500
 
-	mov ax, SampleTextFileIdentifier
-	mov cx, SampleTextFileIdentifierLength
+	mov ax, Stage2FileIdentifier		; file identifier
+	mov cx, Stage2FileIdentifierLength	; file identifier length
 	call Find_and_Load_File_from_Root
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-jmp $
 
 	; Load stage from the disk
 	; mov dl, [bPhysicalDriveNum]	; Drive number
@@ -221,17 +221,17 @@ jmp $
 	;; Pass drive number to stage 2
 	;; we will pass it in register AL, fast and easy
 	;; method for small data
-	; xor ax, ax		; for printing clear complete AX
-	; mov al, [bPhysicalDriveNum]	; put drive number in al to be passed.
-	; mov si, sPassedDriveNumber
-	; call PrintString16BIOS
-	; call PrintWordNumber	; Print the passing drive number
-	; call PrintNewline	; \n
+	xor ax, ax		; for printing clear complete AX
+	mov al, [bPhysicalDriveNum]	; put drive number in al to be passed.
+	mov si, sPassedDriveNumber
+	call PrintString16BIOS
+	call PrintWordNumber	; Print the passing drive number
+	call PrintNewline	; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+	
+	;; Jump to the loaded binary stage2
 	; jump to the stage 2 land
-	; jmp STAGE_2_LOAD_ADDRESS	; 0x0500
-
+	jmp STAGE2_AREA_SEGMENT:STAGE2_AREA_OFFSET	; 0x0000:0x0500
 
 	; Infinite loop
 	jmp $

@@ -6,9 +6,9 @@ jmp stage2_entry
 
 ;ORG STAGE_2_LOAD_ADDRESS	; 0x0500
 ;; No need of ORG directive as we have specified the address in the
-;; Linker script And we are generating pure binary file from LD linker.
+;; Linker script and we are generating pure binary file from LD linker.
 
-; Memory Map:
+; Memory Map: OLD
 ; 0x00000000 - 0x000004FF		Reserved
 ; 0x00000500 - 0x00007AFF		Second Stage Bootloader (~29 Kb)
 ; 0x00007B00 - 0x00007BFF		Stack Space (256 Bytes)
@@ -18,6 +18,23 @@ jmp stage2_entry
 ; 0x0000A000 - 0x0000AFFF		Vesa Mode Map / Controller Information
 ; 0x0000B000 - 0x0007FFFF		File Loading Bay
 
+; Memory Map: NEW
+; 0x00000000 - 0x000003FF	Reserved (1KB), Real Mode IVT (Interrupt Vector Table)
+; 0x00000400 - 0x000004FF	Reserved (256 bytes), BDA (BIOS Data Area)
+; 0x00000500 - 0x00007AFF	Second Stage Bootloader (~29 Kb)
+; 0x00007B00 - 0x00007BFF	Stack Space (256 Bytes)
+; 0x00007C00 - 0x0000CBFF	ISO Stage1 Bootloader (20 KiloBytes = 20,480 bytes)
+; 0x0000CC00 - 0x0007FFFF	460 KB, File Loading.
+; 0x00080000 - 0x0009FFFF	128 KB, Can be used by subsystems in this bootloader
+			; This memory will be known as the Subsystem memory area
+			; It can be accesses with segment:offset
+			; segment = 0x8000, offset = 0x00
+			; Thus complete address => segement*16 + offset
+			; 0x8000 * 16 + 0 = 0x80000
+; 0x000A0000 - 0x000BFFFF	128 KB, Video Display Memory, reserved
+; 0x000C0000 - 0x000C7FFF	32 KB, Video BIOS
+; 0x000C8000 - 0x000EFFFF	160 KB BIOS Expansion
+; 0x000F0000 - 0x000FFFFF	64 KB Motherboard BIOS
 
 ; Includes
 %include "boot/common/print16.inc"
@@ -93,7 +110,7 @@ stage2_entry:
 	call PrintWordNumber		; Print the received drive number
 	call PrintNewline		; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
+jmp $
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Detect Size of Lower (Conventional) Memory

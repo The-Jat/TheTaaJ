@@ -48,11 +48,11 @@ kernel.elf:
 	$(MAKE) -C kernel
 
 # ISO9660
-image.iso: stage1.bin
+image.iso: stage1.bin stage2.bin
 	mkdir -p $(ISO_DIR)/
 	cp $(BUILD_DIR)/stage1.bin $(ISO_DIR)/
 	cp ab.txt $(ISO_DIR)/
-	# cp $(BUILD_DIR)/loader.bin $(ISO_DIR)/
+	cp $(BUILD_DIR)/stage2.bin $(ISO_DIR)/
 
 	xorriso -as mkisofs -R -J -b stage1.bin -no-emul-boot -boot-load-size 4 -o $@ $(ISO_DIR)
 

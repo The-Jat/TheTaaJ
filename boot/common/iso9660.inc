@@ -359,23 +359,25 @@ Find_and_Load_File_from_Root:
 	mov edx, 2048	; Sector sizes in bytes (1 sector = 2048 in ISO 9660)
 	call ReadFromDiskUsingExtendedBIOSFunction
 
-	;; Tell user about displaying the content of the file.
-	mov si, sPrintingTheFileContent
-	call PrintString16BIOS
-	call PrintNewline
 
-	push ds		; store the ds state
-	mov ax, [bp - 24]	; FILE_LOADING_AREA_MEM_SEGMENT
-	mov ds, ax	; set the ds to segment because lodsb in PrintString16BIOS function
+	; Below code is if you are loading a text file then you can print its content.
+	;; Tell user about displaying the content of the file.
+	; mov si, sPrintingTheFileContent
+	; call PrintString16BIOS
+	; call PrintNewline
+
+	; push ds		; store the ds state
+	; mov ax, [bp - 24]	; FILE_LOADING_AREA_MEM_SEGMENT
+	; mov ds, ax	; set the ds to segment because lodsb in PrintString16BIOS function
 			; uses the ds:si pointed string to load in AL.
 			; TODO: Can we use it as es:si, so that ds should be untouched.
 	;; Print the contents of the file.
-	mov si, [bp - 28]; FILE_LOADING_AREA_MEM_OFFSET
+	; mov si, [bp - 28]; FILE_LOADING_AREA_MEM_OFFSET
 					; Prints the data from the 
 					; file loaded area.
-	call PrintString16BIOS
-	call PrintNewline
-	pop ds		; restore the ds state
+	; call PrintString16BIOS
+	; call PrintNewline
+	; pop ds		; restore the ds state
 
 	; We are done here reading the contents of the file.
 	jmp .reading_done
