@@ -110,7 +110,7 @@ stage2_entry:
 	call PrintWordNumber		; Print the received drive number
 	call PrintNewline		; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-jmp $
+
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Detect Size of Lower (Conventional) Memory
@@ -213,6 +213,7 @@ extern detect_ata_devices
 
 ;; Includes
 %include "ata.inc"	; For ATA interface
+%include "print32.inc"	; For Printing in 32 bit assembly
 
 
 Temp32Bit:
@@ -231,6 +232,17 @@ Temp32Bit:
 
 	;; Clear the screen
 	call ClearScreen32
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Print welcome sentence for protected mode
+	mov esi, sProtectedModeWelcomeSentence
+	mov bl, LMAGENTA	; Foreground = Light Magenta
+	mov bh, BLACK		; Background = Black
+	call PrintString32
+	;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+jmp $
 	; Identify the ATA devices
 	call identify_ata_devices
 
