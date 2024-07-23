@@ -93,4 +93,81 @@ PrintString32:
 ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+; ********************************
+; print_fixed_size_string: Fixed Size String Printing Function
+; It retains the line number and starts printing from the next line in subsequent calls.
+;
+; IN: 
+;   - ESI: Pointer to String,
+;   - ECX: Size of the String
+; ******************************** 
+print_fixed_size_string:
+	pushad
+	mov edi, [video_memory]		; 0xB8000
+
+	;; This code helps in starting from the next line every time,
+	;; we call this function, but we have to increment the line every time.
+	; al = line, initially 0
+	; dl = 80*2 	; bytes in a single line
+	; al = al * dl 	; offset to the next line
+	mov byte al, [cursor_line]
+	mov dl, single_line_vmem_bytes	; Number of bytes in a single line 80*2
+	mul dl			; multiply with the al
+	add word edi, eax	; add the offset in the video_memory base
+
+	.print_next_char:
+		mov byte bl, [esi]	; Load first char in bl
+		mov byte [edi], bl	; Load char from bl to video memory's first byte
+		mov byte [edi + 1], 0x05	; Load the color to the next byte of vMem.
+		dec ecx			; Decrement string counter
+		cmp ecx, 0		; Check if it was the last char of string.
+		jz .done_print		; jump to .done_print, if it was the last char
+
+		add edi, 2	; increment the vmem by 2, point to next box of vMem
+		add esi, 1	; point to next char in string.
+		jmp .print_next_char	; loop to print the next char
+	.done_print:		; it was the end of string.
+		inc byte [cursor_line]		; increment the cursor_line and save in variable
+	popad
+ret
+; ********************************
+
+
+; ********************************
+; print_hx = This function prints the hex value of the EAX register
+;  - EAX: Hex value to be printed
+; ******************************** 
+print_hx:
+	pusha
+	mov edi, 0xb8000
+	mov ecx, 8
+.hx_loop:
+	rol eax, 4
+	mov bl, al
+	and bl, 0x0F
+	cmp bl, 10
+	jl .digit
+	add bl, 'A' - 10
+	jmp .print
+.digit:
+	add bl, '0'
+.print:
+	mov byte [edi], bl
+	mov byte [edi+1], 0x04
+	add edi,2
+	loop .hx_loop
+	popa
+ret
+
+;; Video Memory address of 80*25 (mode 3)
+video_memory 	dd 	0xB8000
+
+cursor_line db 0
+
+
+single_line_vmem_bytes equ 80*2	; Total bytes in a single line in 80*25 (Mode 3)
+				; 80 boxes and each box is of 2 bytes
+
+
 %endif

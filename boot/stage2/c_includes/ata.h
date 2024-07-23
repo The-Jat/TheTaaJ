@@ -1,11 +1,8 @@
 #ifndef _ATA_IO_H
 #define _ATA_IO_H
+#include <mem.h>
 
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-typedef unsigned long long int uint64_t;
-
-// Identity structure
+// Identity structure = 512 bytes
 typedef struct {
     uint16_t flags;                // General configuration (word 0)
     uint16_t unused1[9];           // Reserved fields (words 1-9)
@@ -39,6 +36,11 @@ struct ata_device {
     int is_device_connected;	// If the device is connected to this channel.
 };
 
+
+typedef union {
+	unsigned char command_bytes[12];
+	uint16_t command_words[6];
+} atapi_command_t;
 
 
 // Declaration of functions

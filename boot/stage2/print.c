@@ -116,6 +116,18 @@ void boot_print_hex(unsigned int value) {
 
     boot_print(hex_str);
 }
+void boot_ushort_print_hex(unsigned short value) {
+    char hex_chars[] = "0123456789ABCDEF";
+    char hex_str[5]; // 8 hex digits + null terminator
+    hex_str[8] = '\0'; // Null terminator
+
+    for (int i = 3; i >= 0; --i) {
+        hex_str[i] = hex_chars[value & 0xF];
+        value >>= 4;
+    }
+
+    boot_print(hex_str);
+}
 
 
 void init_print_stage2() {

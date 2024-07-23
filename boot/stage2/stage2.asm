@@ -242,9 +242,10 @@ Temp32Bit:
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-jmp $
 	; Identify the ATA devices
 	call identify_ata_devices
+	call detect_ata_devices
+jmp $
 
 ; Read and load dummy kernel from the primary channel, master device
 ; Sector count = 10 for dummy elf kernel,
@@ -267,7 +268,6 @@ jmp $
 			; |---------| --> Stack Top | Stack Pointer
 			; |	    |  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
 	call ata_read_sector_primary_master
-
 
 ;; initialize print
 call init_print_stage2

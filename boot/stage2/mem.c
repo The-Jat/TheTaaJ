@@ -1,6 +1,10 @@
 #include <mem.h>
 
-
+/*typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+typedef unsigned long long int uint64_t;
+*/
 /*
  * memcpy
  * Set `count` bytes to `val`.
@@ -47,4 +51,19 @@ void *memsetb(void *dest, int c, int n) {
 	*/
 	
 	return dest;
+}
+
+int strcmp(const char * l, const char * r) {
+	for (; *l == *r && *l; l++, r++);
+	return *(unsigned char *)l - *(unsigned char *)r;
+}
+
+char * strchr(const char * s, int c) {
+	while (*s) {
+		if (*s == c) {
+			return (char *)s;
+		}
+		s++;
+	}
+	return 0;
 }

@@ -43,6 +43,7 @@ extern void boot_clear_screen();
 extern void boot_print_char_at(unsigned char, int, int);
 extern void boot_print(unsigned char*);
 extern void boot_print_hex(unsigned int);
+extern void boot_ushort_print_hex(unsigned short);
 extern void set_attribute(enum VGA_BackgroundColor bg, enum VGA_ForegroundColor fg);
 extern void init_print_stage2();
 

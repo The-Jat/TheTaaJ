@@ -30,7 +30,8 @@ all: Build kernel_entry.bin
 
 # kernel_entry.bin
 kernel_entry.bin: kernel_entry.asm
-	nasm -f bin -I $(BOOT_STAGE2_INCLUDE) $< -o build/kernel_entry.bin 
+	nasm -f bin -I $(BOOT_STAGE2_INCLUDE) $< -o build/kernel_entry.bin
+	#build/kernel_entry.bin 
 
 # kernel entry in binary
 kernel_entry_exec.elf: kernel_entry.asm

@@ -37,6 +37,8 @@ port_io.elf: boot/stage2/port_io.c
 	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c boot/stage2/port_io.c -o build/port_io.elf
 ata.elf: boot/stage2/ata.c
 	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c boot/stage2/ata.c -o build/ata.elf
+ISO9660.elf: boot/stage2/ISO9660.c
+	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -c boot/stage2/ISO9660.c -o build/ISO9660.elf
 
 stage2.bin: stage2.elf ata.elf elf.elf print.elf port_io.elf mem.elf
 	# ld -m elf_i386 -Ttext 0x0500 --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf
@@ -48,11 +50,12 @@ kernel.elf:
 	$(MAKE) -C kernel
 
 # ISO9660
-image.iso: stage1.bin stage2.bin
+image.iso: stage1.bin stage2.bin kernel.elf
 	mkdir -p $(ISO_DIR)/
 	cp $(BUILD_DIR)/stage1.bin $(ISO_DIR)/
 	cp ab.txt $(ISO_DIR)/
 	cp $(BUILD_DIR)/stage2.bin $(ISO_DIR)/
+	cp kernel/build/kernel_entry.bin $(ISO_DIR)/
 
 	xorriso -as mkisofs -R -J -b stage1.bin -no-emul-boot -boot-load-size 4 -o $@ $(ISO_DIR)
 

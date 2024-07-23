@@ -20,3 +20,8 @@ inline void outb(unsigned short port, unsigned char data) {
 inline void outw(unsigned short port, unsigned short data) {
     __asm__ __volatile__("outw %0, %1" : : "a"(data), "dN"(port));
 }
+
+inline void inwm(unsigned short port, unsigned char * data, unsigned long size) {
+	asm volatile ("rep insw" : "+D" (data), "+c" (size) : "d" (port) : "memory");
+}
+
