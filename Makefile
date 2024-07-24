@@ -42,7 +42,7 @@ ISO9660.elf: boot/stage2/ISO9660.c
 	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -I $(BOOT_STAGE2_C_STD_INCLUDE) -c boot/stage2/ISO9660.c -o build/ISO9660.elf
 
 stage2.bin: stage2.elf ata.elf elf.elf print.elf port_io.elf mem.elf ISO9660.elf
-	# ld -m elf_i386 -Ttext 0x0500 --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf
+#	ld -m elf_i386 -Ttext 0x0500 --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf
 	ld -m elf_i386 -T boot/stage2/stage2.ld --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf build/port_io.elf build/ata.elf build/mem.elf build/ISO9660.elf
 
 # build kernel
@@ -73,14 +73,26 @@ disk.img: stage1.bin stage2.bin kernel.elf
 
 # Test the disk image using emulator
 run:
-	# from disk image
-	# qemu-system-x86_64 -drive  format=raw,file=build/disk.img
+# from disk image
+#	qemu-system-x86_64 -drive  format=raw,file=build/disk.img
 	
-	# from iso image
+# from iso image
 	qemu-system-x86_64 -cdrom image.iso
+
+# Utilities
+ISO9660_utility:
+	$(MAKE) -C utilities ISO9660
+
+ISO9660_utility_run:
+	$(MAKE) -C utilities run
 
 # Clean up generated files
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf $(ISO_DIR)
+#	remove iso image
+	rm -rf image.iso
+#	Clean kernel
 	$(MAKE) -C kernel clean
+#	Clean utilities
+	$(MAKE) -C utilities clean
