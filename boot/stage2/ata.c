@@ -588,7 +588,7 @@ int load_kernel_from_iso9660_using_atapi(const char* kernel_name)
 		for (int i = dir_entry->extent_start_LSB; i < dir_entry->extent_start_LSB + dir_entry->extent_length_LSB / 2048 + 1; ++i, offset += 2048) {
 			ata_device_read_sector_atapi(device, i, (uint8_t *)KERNEL_LOAD_START + offset);
 		}
-		boot_print("Kernel was loaded successfully.");
+		boot_print("Kernel was loaded successfully.\n");
 
 		// Below snippet is for calling the loaded kernel using c code.
 		// uint32_t kernel_address = 0x300000;

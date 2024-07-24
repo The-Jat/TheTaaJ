@@ -245,9 +245,12 @@ Temp32Bit:
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; initialize print
 	call init_print_stage2
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	; Identify the ATA devices
 	call identify_ata_devices
 	call detect_ata_devices
@@ -275,22 +278,49 @@ Temp32Bit:
 
 	;; At this point, kernel was loaded successfully.
 	; Jump if it binary kernel, otherwise read and extract and if it is elf one.
-	;jmp 0x300000		; assembly way
-	call jump_to_kernel	; C-way
+	; jmp 0x300000		; assembly way, for jumping to the binary kernel
+	; call jump_to_kernel	; C-way, for jumping to the binary kernel.
+
+	call load_elf32
+    ; Check the return value, if 1, print success message, otherwise, print failure message
+	cmp eax, 1		; check Return
+					; if 0 - failure
+					; if 1 - success
+	jne elf_reading_loading_error
+	jmp 0x1000000	; Jump to the location, where kernel elf sections are loaded.
+
+;; We should not be here.
+	mov esi, 0xb8000
+	mov byte [esi], 'E'
+	mov byte [esi+1], 0x07
+
+	mov byte [esi+2], 'L'
+	mov byte [esi+3], 0x07
+
+	mov byte [esi+4], 'F'
+	mov byte [esi+5], 0x07
+
+	jmp $
+
+elf_reading_loading_error:
+	mov esi, sKernelELFReadingLoadingFailedSentence
+	call PrintString32
+
+; *******************************
 jmp $		; Infinite loop.
 	
 
-; Read and load dummy kernel from the primary channel, master device
-; Sector count = 10 for dummy elf kernel,
-;		 2 for binary kernel
-; starting sector (LBA) = 59
-; Destination Buffer Location = 0xB000
-	mov bx, 0x00		; Cylinder low and high byte
+;; Read and load dummy kernel from the primary channel, master device
+;; Sector count = 10 for dummy elf kernel,
+;;		 2 for binary kernel
+;; starting sector (LBA) = 59
+;; Destination Buffer Location = 0xB000
+;	mov bx, 0x00		; Cylinder low and high byte
 				; BH = Cylinder High byte
 				; BL = Cylinder Low byte
-	mov edi, 0xb000		; Destination address to read
-	push dword 0x3b;59	; starting LBA
-	push dword 10		; Sector count
+;	mov edi, 0xb000		; Destination address to read
+;	push dword 0x3b;59	; starting LBA
+;	push dword 10		; Sector count
 			; |         | Higher Memory Address
 			; |---------| --> Stack Bottom | Base Pointer
 			; | sector  |
@@ -299,43 +329,20 @@ jmp $		; Infinite loop.
 			; | sector  |
 			; | count   |
 			; |---------| --> Stack Top | Stack Pointer
-			; |	    |  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
-	call ata_read_sector_primary_master
+			; |         |  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
+;	call ata_read_sector_primary_master
 
 
-;;Detect ATA devices
+;; Detect ATA devices
 
-call detect_ata_devices
-jmp 0xb000
+; call detect_ata_devices
 
-jmp $
-
-	;jmp 0xb000	; jump to the loaded binary dummy kernel
+; jmp 0xb000	; jump to the loaded binary dummy kernel
 
 ;	call ata_read_sector
 ;	jmp 0xb000		; Jump to loaded binary kernel
 
 
-	call load_elf32
-	cmp eax, 1
-	jne err
-	jmp 0x1000000
-
-	mov esi, 0xb8000
-	mov byte [esi], '3'
-	mov byte [esi+1], 0x07
-	
-	mov byte [esi+2], '2'
-	mov byte [esi+3], 0x07
-	
-	jmp $
-	
-err:
-	mov esi, 0xb8000
-	mov byte [esi], 'E'
-	mov byte [esi+1], 0x07
-	jmp $
-; *******************************
 
 ErrorLoadingKernel:
 	mov esi, sKernelLoadingFailureSentence
@@ -418,12 +425,13 @@ sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 sProtectedModeWelcomeSentence	db	'Entered the Protective Land', 0
 sKernelLoadedSentence	db	'Kernel was Loaded', 0
 
-kernel_name db 'KERNEL_ENTRY.BIN', 0  ; Define the string with a null terminator
+kernel_name db 'KERNEL.ELF', 0  ; Define the string with a null terminator
 										; Now we are in ISO level 3 which supports upto 31 characters for the file identifier
 										; If again switching back to ISO level 1, which might be the default, if not specified explicitly.
 										; In that case, change the name to 11 characters long, 8 for name and 3 for extension,
 										; separated by the dot (.)
 sKernelLoadingFailureSentence db 'Failure in loading kernel', 0
+sKernelELFReadingLoadingFailedSentence db 'Failure in reading and loading kernel elf file.', 0
 
 ;times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes
 ;; No need of it, as we have the assembly and C code together.
