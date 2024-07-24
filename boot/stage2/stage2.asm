@@ -418,7 +418,11 @@ sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 sProtectedModeWelcomeSentence	db	'Entered the Protective Land', 0
 sKernelLoadedSentence	db	'Kernel was Loaded', 0
 
-kernel_name db 'KERNEL_E.BIN', 0  ; Define the string with a null terminator
+kernel_name db 'KERNEL_ENTRY.BIN', 0  ; Define the string with a null terminator
+										; Now we are in ISO level 3 which supports upto 31 characters for the file identifier
+										; If again switching back to ISO level 1, which might be the default, if not specified explicitly.
+										; In that case, change the name to 11 characters long, 8 for name and 3 for extension,
+										; separated by the dot (.)
 sKernelLoadingFailureSentence db 'Failure in loading kernel', 0
 
 ;times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes

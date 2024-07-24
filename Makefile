@@ -58,7 +58,10 @@ image.iso: stage1.bin stage2.bin kernel.elf
 	cp $(BUILD_DIR)/stage2.bin $(ISO_DIR)/
 	cp kernel/build/kernel_entry.bin $(ISO_DIR)/
 
-	xorriso -as mkisofs -R -J -b stage1.bin -no-emul-boot -boot-load-size 4 -o $@ $(ISO_DIR)
+# We will use the ISO Level 3, which supports longer names, and extended features, but less compatibility to old systems.
+# If we dont specify the ISO level explicitly then I guess by default is level 1, which has more restrictions but full compatibility to old systems.
+# ISO level is specified by option, -iso-level 1 OR 2 OR 3
+	xorriso -as mkisofs -R -J -b stage1.bin -iso-level 3 -no-emul-boot -boot-load-size 4 -o $@ $(ISO_DIR)
 
 
 # write all stages to the disk image
