@@ -1,20 +1,15 @@
-#ifndef _MEM_H_
-#define _MEM_H_
+#ifndef __MEM_H__
+#define __MEM_H__
 
-typedef unsigned char uint8_t;
-typedef signed char int8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-typedef unsigned long long int uint64_t;
-
-typedef int size_t;
+#include <stdint.h>
+#include <stddef.h>
 
 extern void *memcpyb(void *dest, const void *src, size_t n);
 extern void *memsetb(void *dest, int c, int n);
 
 extern int strcmp(const char * l, const char * r);
 
-extern char * strchr(const char * s, int c);
+extern char *strchr(const char * s, int c);
 
-#endif _MEM_H_
+#endif /* __MEM_H__ */
 

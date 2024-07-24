@@ -211,6 +211,9 @@ extern init_print_stage2
 
 extern detect_ata_devices
 
+extern find_and_load_kernel_from_9660_using_atapi
+extern jump_to_kernel
+
 ;; Includes
 %include "ata.inc"	; For ATA interface
 %include "print32.inc"	; For Printing in 32 bit assembly
@@ -242,10 +245,40 @@ Temp32Bit:
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+	;; initialize print
+	call init_print_stage2
+
 	; Identify the ATA devices
 	call identify_ata_devices
 	call detect_ata_devices
-jmp $
+
+	; Find the Kernel from the ISO 9660 and load it at its destined location.
+
+	;; 32-bit system make use of cdecl calling convention, while x64 make use of System V AMD64 Calling Convention;
+	;; cdecl calling convention =
+	; In the cdecl calling convention, which is common for x86 (32-bit) systems,
+	; function arguments are passed on the stack. Arguments are pushed from right to left,
+	; and the caller is responsible for cleaning up the stack after the function call.
+	;; System V AMD64 calling convention =
+	; In the System V AMD64 calling convention, which is common for x86-64 (64-bit) systems,
+	; the first six integer or pointer arguments are passed in registers rdi, rsi, rdx, rcx,
+	; r8, and r9. Additional arguments are passed on the stack.
+
+	push kernel_name		; Push the address of the kernel name string onto the stack
+	call find_and_load_kernel_from_9660_using_atapi
+	add esp, 4			; Clean up the stack
+	;; Return
+	;	- 1: Success, Kernel was found and loaded
+	;	- 0: Failure, Kernel either not found or not loaded.
+	cmp eax, 1		; success kernel was found and loaded.
+	jne ErrorLoadingKernel		; Display error string in case of kernel loading failure.
+
+	;; At this point, kernel was loaded successfully.
+	; Jump if it binary kernel, otherwise read and extract and if it is elf one.
+	;jmp 0x300000		; assembly way
+	call jump_to_kernel	; C-way
+jmp $		; Infinite loop.
+	
 
 ; Read and load dummy kernel from the primary channel, master device
 ; Sector count = 10 for dummy elf kernel,
@@ -269,8 +302,6 @@ jmp $
 			; |	    |  Lower Memory Address (Stack Grows Higher to Lower Memory Address)
 	call ata_read_sector_primary_master
 
-;; initialize print
-call init_print_stage2
 
 ;;Detect ATA devices
 
@@ -306,6 +337,12 @@ err:
 	jmp $
 ; *******************************
 
+ErrorLoadingKernel:
+	mov esi, sKernelLoadingFailureSentence
+	mov bl, LMAGENTA	; Foreground = Light Magenta
+	mov bh, BLACK		; Background = Black
+	call PrintString32
+jmp $
 
 ; *******************************
 ;; Permanent Protected Mode
@@ -380,6 +417,9 @@ sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 
 sProtectedModeWelcomeSentence	db	'Entered the Protective Land', 0
 sKernelLoadedSentence	db	'Kernel was Loaded', 0
+
+kernel_name db 'KERNEL_E.BIN', 0  ; Define the string with a null terminator
+sKernelLoadingFailureSentence db 'Failure in loading kernel', 0
 
 ;times STAGE_2_SIZE - ($-$$) db 0		; Fill up the remaining space with zeroes
 ;; No need of it, as we have the assembly and C code together.

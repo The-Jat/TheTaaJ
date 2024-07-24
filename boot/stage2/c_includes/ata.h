@@ -2,6 +2,9 @@
 #define _ATA_IO_H
 #include <mem.h>
 
+// This macro converts 32 bits from little endian byte order to big endian
+#define LittleToBigEndian(l) ((((l) & 0xFF) << 24) | (((l) & 0xFF00) << 8) | (((l) & 0xFF0000) >> 8) | (((l) & 0xFF000000) >> 24))
+
 // Identity structure = 512 bytes
 typedef struct {
     uint16_t flags;                // General configuration (word 0)
@@ -38,7 +41,7 @@ struct ata_device {
 
 
 typedef union {
-	unsigned char command_bytes[12];
+	uint8_t command_bytes[12];
 	uint16_t command_words[6];
 } atapi_command_t;
 
