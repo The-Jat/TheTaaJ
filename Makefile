@@ -47,7 +47,7 @@ stage2.bin: stage2.elf ata.elf elf.elf print.elf port_io.elf mem.elf ISO9660.elf
 
 # build kernel
 kernel.elf:
-	@echo "building kernel"
+	@echo "Building kernel"
 	$(MAKE) -C kernel
 
 # ISO9660

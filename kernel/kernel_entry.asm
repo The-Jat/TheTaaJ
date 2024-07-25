@@ -9,7 +9,8 @@
 
 BITS 32                  ; Specify that the code is 32-bit.
 
-;section .text
+section .text
+global kernel_entry
 kernel_entry:            ; Label for the kernel entry point.
 
 jmp start		; jmp after the includes
