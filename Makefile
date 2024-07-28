@@ -84,11 +84,11 @@ run:
 	qemu-system-x86_64 -cdrom image.iso
 
 # Utilities
-ISO9660_utility:
-	$(MAKE) -C utilities ISO9660
+utilities:
+	$(MAKE) -C utilities
 
 ISO9660_utility_run:
-	$(MAKE) -C utilities run
+	$(MAKE) -C utilities run_iso9660
 
 # Clean up generated files
 clean:
@@ -100,3 +100,6 @@ clean:
 	$(MAKE) -C kernel clean
 #	Clean utilities
 	$(MAKE) -C utilities clean
+
+
+.PHONY: utilities ISO9660_utility_run
