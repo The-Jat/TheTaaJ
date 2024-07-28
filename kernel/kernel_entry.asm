@@ -23,7 +23,24 @@ extern isrs_install
 ;; Include files
 %include "print32.inc"
 
+;; Parameters passed from the bootloader through register.
+; EAX - Multiboot Magic
+; EBX - Contains address of the multiboot structure, but
+;		it should be located in stack aswell.
+; EDX - Contains address of the os boot structure
 start:
+	cli
+	;; set up the stack
+	mov eax, 0x10
+	mov ss, ax
+	mov esp, 0x9F000
+	mov ebp, esp
+
+	;; Place the multiboot structure and osBoot descriptor structure
+	;; on the stack
+	push edx
+	push ebx
+	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Clear the Screen
 	call ClearScreen32
@@ -38,8 +55,6 @@ start:
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Stop right here
-jmp $ ;; Infinite loop
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Setting up IDT things
@@ -61,7 +76,7 @@ jmp $ ;; Infinite loop
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Call the C kernel
-;	call k_main
+	call k_main
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 

@@ -75,7 +75,8 @@ VesaGetVideoModes:
 
 	; Yay! Go back
 	popad
-	;mov 	dword [BootHeader + MultiBoot.VBEControllerInfo], edi
+	;; Save in the bootheader to be passed to kernel
+	mov 	dword [BootHeader + MultiBoot.VBEControllerInfo], edi
 	mov 	eax, 0
 	ret
 
@@ -268,8 +269,8 @@ VesaSetup:
 	mov 	ax, 0x4F01
 	mov 	cx, word [wOptimizedVesaMode]
 	mov 	edi, VesaModeInfo
-	; mov 	dword [BootHeader + MultiBoot.VBEModeInfo], edi
-	; mov 	dword [BootHeader + MultiBoot.VBEMode], ecx
+	mov 	dword [BootHeader + MultiBoot.VBEModeInfo], edi
+	mov 	dword [BootHeader + MultiBoot.VBEMode], ecx
 	int 	0x10
 	
 	call PrintNewline	; \n

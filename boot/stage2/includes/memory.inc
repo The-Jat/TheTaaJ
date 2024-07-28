@@ -220,11 +220,11 @@ SetupMemory:
 
 	; Step 1, try to get memory map
 	mov 	edi, MEMLOCATION_MEMORY_MAP
-	mov 	dword [dataStructureObj + DataStructure.MemMapAddr], edi
+	mov 	dword [BootHeader + MultiBoot.MemMapAddr], edi
 	mov 	si, sMemMapAddrSentence
 	call	PrintString16BIOS
 
-	mov	word dx, [dataStructureObj + DataStructure.MemMapAddr]
+	mov	word dx, [BootHeader + MultiBoot.MemMapAddr]
 	call	PrintWordHex
 	call	PrintNewline
 
@@ -232,10 +232,10 @@ SetupMemory:
 	call 	LoadMemoryMap
 
 	; Save entry count
-	mov 	dword [dataStructureObj + DataStructure.MemMapLength], ebp
+	mov 	dword [BootHeader + MultiBoot.MemMapLength], ebp
 
 	;; Print the 
-	mov	word ax, [dataStructureObj + DataStructure.MemMapLength]	
+	mov	word ax, [BootHeader + MultiBoot.MemMapLength]	
 	mov	si, sMemMapLengthSentence
 	call	PrintString16BIOS
 	call	PrintWordNumber
@@ -264,8 +264,8 @@ SetupMemory:
 	.NoError:
 		; Add lower 1 mb and save
 		;add 	eax, 0x400
-		mov 	dword [dataStructureObj + DataStructure.MemoryLo], eax
-		mov 	dword [dataStructureObj + DataStructure.MemoryHi], ebx
+		mov 	dword [BootHeader + MultiBoot.MemoryLo], eax
+		mov 	dword [BootHeader + MultiBoot.MemoryHi], ebx
 		
 		;; Print the lower memory size
 		mov	si, sLowMemSentence

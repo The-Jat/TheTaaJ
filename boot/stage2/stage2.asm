@@ -111,23 +111,33 @@ stage2_entry:
 	call PrintNewline		; \n
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Print the Bootloader name
+	mov esi, sBootloaderName
+	call PrintString16BIOS
+	call PrintNewline
+	;; Set the Bootloader name in multiboot structure
+	;; to be passed to kernel.
+	mov esi, sBootloaderName
+	mov dword [BootHeader  + MultiBoot.BootLoaderName], esi
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Detect Size of Lower (Conventional) Memory
 	call GetLowerMemorySize
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
+
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Detect the Size of Both the Lower and Higher Memory
 	;; with the Use of int 0x15.
 	call SetupMemory
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
+
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Enable A20 Gate (Line)
 	call	EnableA20Gate
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
+
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	call InstallGdt32
@@ -288,6 +298,14 @@ Temp32Bit:
 					; if 1 - success
 	jne elf_reading_loading_error
 
+	;; Setup Register to pass the data structure to the kernel
+	xor esi, esi
+	xor edi, edi
+	mov eax, MULTIBOOT_MAGIC
+	mov ebx, BootHeader
+	mov edx, BootDescriptor
+
+
 	jmp 0x1000000	; Jump to the location, where kernel elf sections are loaded.
 
 ;; We should not be here.
@@ -422,6 +440,8 @@ bPhysicalDriveNum 	db	0
 
 WelcomeToStage2 db 'Welcome to the Stage2', 0
 sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
+
+sBootloaderName	db	"TheTaaJBoot Version 0.0.1, Author: TheJat", 0
 
 sProtectedModeWelcomeSentence	db	'Entered the Protective Land', 0
 sKernelLoadedSentence	db	'Kernel was Loaded', 0
