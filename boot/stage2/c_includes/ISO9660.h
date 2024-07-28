@@ -118,11 +118,13 @@ typedef struct {
 extern int root_sector;
 extern iso_9660_volume_descriptor_t * root;
 extern iso_9660_directory_entry_t * dir_entry;
+extern iso_9660_directory_entry_t *searched_file_dir_entry;
 extern uint8_t * mod_dir;
 extern uint8_t * dir_entries;
 extern struct ata_device * device;
 
-int navigate(char * name);
+int navigate_to_file_directory_entry(char * name);
+void traverse_the_disk();
 
 
 #endif /* __ISO_9660_H__ */

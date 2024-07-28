@@ -577,15 +577,18 @@ done:
 // Find and load the kernel at destined location, KERNEL_LOAD_START
 int load_kernel_from_iso9660_using_atapi(const char* kernel_name)
 {
+	// Traverse the disk print all its files/ directories.
+	traverse_the_disk();
+
 	// Our kernel is "kernel_entry.bin" however, ISO9660 only allows the idenfier to be
 	// of length 11 excluding (.) with 8:3 (8 character for the name without extension,
 	// and 3 characters for the extension).
-	if (navigate(kernel_name)) {//("KERNEL_E.BIN")) {
+	if (navigate_to_file_directory_entry(kernel_name)) {//("KERNEL_E.BIN")) {
 		boot_print("Found the kernel.\n");
-		boot_print_hex(dir_entry->extent_start_LSB); boot_print(" ");
-		boot_print_hex(dir_entry->extent_length_LSB); boot_print("\n");
+		boot_print_hex(searched_file_dir_entry->extent_start_LSB); boot_print(" ");
+		boot_print_hex(searched_file_dir_entry->extent_length_LSB); boot_print("\n");
 		long offset = 0;
-		for (int i = dir_entry->extent_start_LSB; i < dir_entry->extent_start_LSB + dir_entry->extent_length_LSB / 2048 + 1; ++i, offset += 2048) {
+		for (int i = searched_file_dir_entry->extent_start_LSB; i < searched_file_dir_entry->extent_start_LSB + searched_file_dir_entry->extent_length_LSB / 2048 + 1; ++i, offset += 2048) {
 			ata_device_read_sector_atapi(device, i, (uint8_t *)KERNEL_LOAD_START + offset);
 		}
 		boot_print("Kernel was loaded successfully.\n");

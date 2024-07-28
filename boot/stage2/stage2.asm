@@ -287,6 +287,7 @@ Temp32Bit:
 					; if 0 - failure
 					; if 1 - success
 	jne elf_reading_loading_error
+
 	jmp 0x1000000	; Jump to the location, where kernel elf sections are loaded.
 
 ;; We should not be here.
@@ -424,8 +425,8 @@ sReceivedDriveNumber db 'Received Drive Number in Stage 2: ', 0
 
 sProtectedModeWelcomeSentence	db	'Entered the Protective Land', 0
 sKernelLoadedSentence	db	'Kernel was Loaded', 0
-
-kernel_name db 'KERNEL.ELF', 0  ; Define the string with a null terminator
+module_name db 'MODULE.ELF', 0  ; Define the string with a null terminator
+kernel_name db 'KERNEL/KERNEL.ELF', 0  ; Define the string with a null terminator
 										; Now we are in ISO level 3 which supports upto 31 characters for the file identifier
 										; If again switching back to ISO level 1, which might be the default, if not specified explicitly.
 										; In that case, change the name to 11 characters long, 8 for name and 3 for extension,

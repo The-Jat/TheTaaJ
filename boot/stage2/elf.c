@@ -48,5 +48,10 @@ int load_elf32()
 	}
 	boot_print("[load_elf32], Loading Elf32 done.\n");
 
+	// In Case just jump to the loaded position of the file implicitly,
+	
+	//void (*entry_point)(void) = (void(*)(void))header->e_entry;
+	//	entry_point();
+
 	return 1;	// Return true
 }
