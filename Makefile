@@ -51,7 +51,7 @@ kernel.elf:
 	$(MAKE) -C kernel
 
 # ISO9660
-image.iso: stage1.bin stage2.bin kernel.elf module.elf
+image.iso: stage1.bin stage2.bin kernel.elf
 	mkdir -p $(ISO_DIR)/
 	mkdir -p $(ISO_DIR)/boot
 	mkdir -p $(ISO_DIR)/kernel
@@ -60,7 +60,6 @@ image.iso: stage1.bin stage2.bin kernel.elf module.elf
 	cp ab.txt $(ISO_DIR)/
 	cp sample.txt $(ISO_DIR)/saample/
 	cp $(BUILD_DIR)/stage2.bin $(ISO_DIR)/
-	cp $(BUILD_DIR)/module.elf $(ISO_DIR)/
 	cp kernel/build/kernel.elf $(ISO_DIR)/kernel
 
 # We will use the ISO Level 3, which supports longer names, and extended features, but less compatibility to old systems.
