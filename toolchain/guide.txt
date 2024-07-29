@@ -1,0 +1,4 @@
+To export the toolchain:
+	Temporary thing
+	// Run it from the root of the repo after it you can run "make all"
+	export PATH="toolchain/i686/bin:$PATH"
