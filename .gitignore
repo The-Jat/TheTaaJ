@@ -2,4 +2,8 @@
 *.bin
 *.img
 *.sys
-toolchain/
+*.iso
+/build
+/kernel/build
+/iso
+/toolchain/i686
