@@ -14,7 +14,7 @@ SUBDIRS = idt utilities vga
 
 # Define source files in the root directory
 ROOT_ASM_SOURCES = kernel_entry.asm
-ROOT_C_SOURCES = kernel_main.c
+ROOT_C_SOURCES = kernel_main.c init.c
 
 # Define object files in the root directory
 ROOT_ASM_OBJECTS = $(ROOT_ASM_SOURCES:%.asm=$(BUILD_DIR)/%.o)

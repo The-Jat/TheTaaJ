@@ -83,4 +83,12 @@ typedef struct BootDescriptor
 
 } __attribute__((packed)) OsBootDescriptor;
 
+
+typedef struct CoreBootInfo {
+	char			*BootLoaderName;
+	OsBootDescriptor	Descriptor;
+	void			*ArchBootInfo;
+} __attribute__((packed)) BootInfo_t;
+
+
 #endif
