@@ -19,6 +19,10 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	x86BootInfo.Descriptor.ExportsSize = BootDescriptor->ExportsSize;
 	x86BootInfo.Descriptor.SymbolsAddress = BootDescriptor->SymbolsAddress;
 	x86BootInfo.Descriptor.SymbolsSize = BootDescriptor->SymbolsSize;
+
+	// Initialize cpu
+	CpuInitialize();
+
 	init_video();
 	puts("This is the Kernel main.\n", VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 
