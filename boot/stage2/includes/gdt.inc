@@ -4,11 +4,12 @@
 BITS 16
 
 ; Definitions
-%define 		NULL_DESC 		0
-%define 		CODE_DESC 		0x8
-%define 		DATA_DESC 		0x10
-%define			CODE16_DESC		0x18
+%define 		NULL_DESC 	0
+%define 		CODE_DESC 	0x8
+%define 		DATA_DESC 	0x10
+%define			CODE16_DESC	0x18
 %define 		DATA16_DESC 	0x20
+
 
 
 ; ********************************
@@ -85,6 +86,10 @@ GDT32:
 	dw EndOfGdt - StartOfGdt - 1	; Size
 	dd StartOfGdt			; Starting address
 
+; Interrupt Descriptor Table
+Idt16:
+	dw 0x3ff		; 256 entries, 4b each = 1K
+	dd 0			; Real Mode IVT @ 0x0000
 
 sGDT32InstallingSentence db 'Installing the GDT 32...', 0
 sGDT32InstalledSentence db 'Installed the GDT 32...', 0

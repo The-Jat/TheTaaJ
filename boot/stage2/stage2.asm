@@ -298,15 +298,42 @@ Temp32Bit:
 					; if 1 - success
 	jne elf_reading_loading_error
 
+	;; loading successful
+
+	;; Jump to protected real mode and do vesa things.
+	; Load 16-bit protected mode descriptor
+	mov 	eax, DATA16_DESC
+	mov 	ds, eax
+	mov 	es, eax
+	mov 	fs, eax
+	mov 	gs, eax
+	mov 	ss, eax
+
+	; Jump to protected real mode, set CS!
+	jmp	CODE16_DESC:PrepareToJumpToReal
+
+BITS 16
+PrepareToJumpToReal:
+	; Load 16 bit IDT
+	;call LoadIdt16
+	lidt [Idt16]
+	; Disable Protected Mode
+	mov eax, cr0
+	and eax, 0xFFFFFFFE
+	mov cr0, eax
+
+	; Far jump to real mode unprotected
+	jmp 0:Temp16Bit
+
 	;; Setup Register to pass the data structure to the kernel
-	xor esi, esi
-	xor edi, edi
-	mov eax, MULTIBOOT_MAGIC
-	mov ebx, BootHeader
-	mov edx, BootDescriptor
+;	xor esi, esi
+;	xor edi, edi
+;	mov eax, MULTIBOOT_MAGIC
+;	mov ebx, BootHeader
+;	mov edx, BootDescriptor
 
 
-	jmp 0x1000000	; Jump to the location, where kernel elf sections are loaded.
+;	jmp 0x1000000	; Jump to the location, where kernel elf sections are loaded.
 
 ;; We should not be here.
 	mov esi, 0xb8000
@@ -370,6 +397,47 @@ ErrorLoadingKernel:
 	call PrintString32
 jmp $
 
+
+; *******************************
+BITS 16
+Temp16Bit:
+	; Clear registers
+	xor 	eax, eax
+	xor 	ebx, ebx
+	xor 	ecx, ecx
+	xor	edx, edx
+	xor 	esi, esi
+	xor 	edi, edi
+
+	; Setup segments, leave 16 bit protected mode
+	mov		ds, ax
+	mov		es, ax
+	mov		fs, ax
+	mov		gs, ax
+
+	; Setup stack
+	mov		ss, ax
+	mov		ax, 0x7BFF
+	mov		sp, ax
+	xor 	ax, ax
+
+	; Enable interrupts
+	sti
+
+	; Switch Video Mode
+	call 	VesaFinish
+
+	; Goto Permanent Protected Mode!
+	mov		eax, cr0
+	or		eax, 1
+	mov		cr0, eax
+
+	; Jump into 32 bit
+	jmp 	CODE_DESC:ProtectedMode
+
+jmp $
+
+
 ; *******************************
 ;; Permanent Protected Mode
 
@@ -380,7 +448,7 @@ BITS 32
 ProtectedMode:
 	; Update segment registers
 	xor eax, eax
-	mov ax, 0x10            ; Data segment selector 0x10
+	mov ax, DATA_DESC            ; Data segment selector 0x10
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
@@ -410,24 +478,31 @@ ProtectedMode:
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; clear the screen
-	call ClearScreen32
+;	call ClearScreen32
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
+
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Print welcome sentence for protected mode
-	mov esi, sProtectedModeWelcomeSentence
-	mov bl, LMAGENTA	; Foreground = Light Magenta
-	mov bh, BLACK		; Background = Black
-	call PrintString32
+;	mov esi, sProtectedModeWelcomeSentence
+;	mov bl, LMAGENTA	; Foreground = Light Magenta
+;	mov bh, BLACK		; Background = Black
+;	call PrintString32
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; jmp to the kernel
-		jmp MEMLOCATION_KERNEL_LOAD_OFFSET
+	; jmp MEMLOCATION_KERNEL_LOAD_OFFSET
+	xor esi, esi
+	xor edi, edi
+	mov eax, MULTIBOOT_MAGIC
+	mov ebx, BootHeader
+	mov edx, BootDescriptor
+
+	jmp 0x1000000
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

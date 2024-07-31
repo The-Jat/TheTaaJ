@@ -19,14 +19,14 @@ unsigned char *memcpy(unsigned char *dest, const unsigned char *src, int count) 
  * memset
  * Set `count` bytes to `val`.
  */
-unsigned char *memset(unsigned char *dest, unsigned char val, int count) {
+/*unsigned char *memset(unsigned char *dest, unsigned char val, int count) {
 	int i;
 	i = 0;
 	for ( ; i < count; ++i ) {
 		dest[i] = val;
 	}
 	return dest;
-}
+}*/
 
 /*
  * memsetw
