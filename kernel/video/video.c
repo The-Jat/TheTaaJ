@@ -102,10 +102,18 @@ void VideoDrawBootTerminal(unsigned X, unsigned Y, size_t Width, size_t Height) 
 	for (i = 0; i < 48; i++) {
 		VideoDrawLine(X, Y + i, X + Width, Y + i, BootTerminalColor);
 	}
-	
+
 	// Draw remaining borders
-	VideoDrawLine(X, Y, X, Y + Height, BootTerminalColor);
-	VideoDrawLine(X + Width, Y, X + Width, Y + Height, BootTerminalColor);
+	int borderWidth = 5;
+	// Left border
+	for(int i = 0; i < borderWidth; i++){
+		VideoDrawLine(X + i, Y, X + i, Y + Height, BootTerminalColor);
+	}
+	// Right border
+	for(int i = 0; i < borderWidth; i++) {
+		VideoDrawLine(X + Width - i, Y, X + Width - i, Y + Height, BootTerminalColor);
+	}
+	// Bottom border
 	VideoDrawLine(X, Y + Height, X + Width, Y + Height, BootTerminalColor);
 
 	// Render title in middle of header
