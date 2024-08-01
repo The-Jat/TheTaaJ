@@ -7,8 +7,8 @@ typedef uint32_t                    reg32_t;
 typedef reg32_t                     reg_t;
 
 typedef enum {
-	OsSuccess,
-	OsError
+	Success,
+	Error
 } OsStatus_t;
 
 #ifndef LOBYTE

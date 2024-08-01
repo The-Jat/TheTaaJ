@@ -4,13 +4,23 @@
 #include <datastructure.h>
 #include <defs.h>
 
-static BootTerminal_t videoTerminal;
+// static global variable, that's why prefix s_
+/*
+* static global variables = persists the value within this 
+* file only. Similar to global variables its scope is limited to this file only.
+* It is not accessible from other files in the same program.
+* In order to access it in other fies, we have VideoGetTerminal()
+* which returns the reference to this static global variable.
+* 
+* Note: Unlike global variables it would not be accessible even with by using extern keyword.
+*/
+static BootTerminal_t s_videoTerminal;
 
-// Font stuff
-extern const uint8_t MCoreFontBitmaps[];
-extern const uint32_t MCoreFontNumChars;
-extern const uint32_t MCoreFontHeight;
-extern const uint32_t MCoreFontWidth;
+// Font stuff defined in font8x16.c file.
+extern const uint8_t FontBitmaps[];
+extern const uint32_t FontNumChars;
+extern const uint32_t FontHeight;
+extern const uint32_t FontWidth;
 
 
 /* VesaDrawPixel
@@ -21,15 +31,15 @@ OsStatus_t VesaDrawPixel(unsigned X, unsigned Y, uint32_t Color) {
 
 	// Calculate the video-offset
 	VideoPtr = (uint32_t*)
-		(videoTerminal.Info.FrameBufferAddress 
-			+ ((Y * videoTerminal.Info.BytesPerScanline)
-		+ (X * (videoTerminal.Info.Depth / 8))));
+		(s_videoTerminal.Info.FrameBufferAddress 
+			+ ((Y * s_videoTerminal.Info.BytesPerScanline)
+		+ (X * (s_videoTerminal.Info.Depth / 8))));
 
 	// Set the pixel
 	(*VideoPtr) = (0xFF000000 | Color);
 
 	// No error
-	return OsSuccess;
+	return Success;
 }
 
 
@@ -43,18 +53,18 @@ OsStatus_t VesaDrawCharacter(unsigned CursorX, unsigned CursorY, int Character, 
 	unsigned Row, i = (unsigned)Character;
 
 	// Calculate the video-offset
-	vPtr = (uint32_t*)(videoTerminal.Info.FrameBufferAddress 
-		+ ((CursorY * videoTerminal.Info.BytesPerScanline)
-		+ (CursorX * (videoTerminal.Info.Depth / 8))));
+	vPtr = (uint32_t*)(s_videoTerminal.Info.FrameBufferAddress 
+		+ ((CursorY * s_videoTerminal.Info.BytesPerScanline)
+		+ (CursorX * (s_videoTerminal.Info.Depth / 8))));
 
 
 	// Lookup bitmap
-	ChPtr = (uint8_t*)&MCoreFontBitmaps[i * MCoreFontHeight];
+	ChPtr = (uint8_t*)&FontBitmaps[i * FontHeight];
 
 	// Iterate bitmap rows
-	for (Row = 0; Row < MCoreFontHeight; Row++) {
+	for (Row = 0; Row < FontHeight; Row++) {
 		uint8_t BmpData = ChPtr[Row];
-		uint32_t _;
+		uint32_t offset;
 
 		// Render data in row
 		for (i = 0; i < 8; i++) {
@@ -62,13 +72,13 @@ OsStatus_t VesaDrawCharacter(unsigned CursorX, unsigned CursorY, int Character, 
 		}
 
 		// Increase the memory pointer by row
-		_ = (uint32_t)vPtr;
-		_ += videoTerminal.Info.BytesPerScanline;
-		vPtr = (uint32_t*)_;
+		offset = (uint32_t)vPtr;
+		offset += s_videoTerminal.Info.BytesPerScanline;
+		vPtr = (uint32_t*)offset;
 	}
 
 	// Done - no errors
-	return OsSuccess;
+	return Success;
 }
 
 
@@ -81,14 +91,14 @@ OsStatus_t TextDrawCharacter(int Character, unsigned CursorY, unsigned CursorX, 
 	uint16_t Data = ((uint16_t)Color << 8) | (uint8_t)(Character & 0xFF);
 
 	// Calculate video position
-	Video = (uint16_t*)videoTerminal.Info.FrameBufferAddress +
-		(CursorY * videoTerminal.Info.Width + CursorX);
+	Video = (uint16_t*)s_videoTerminal.Info.FrameBufferAddress +
+		(CursorY * s_videoTerminal.Info.Width + CursorX);
 
 	// Plot it on the screen
 	*Video = Data;
 
 	// Done - no errors
-	return OsSuccess;
+	return Success;
 }
 
 
@@ -97,53 +107,53 @@ OsStatus_t TextDrawCharacter(int Character, unsigned CursorY, unsigned CursorX, 
  * boot-video interface for the entire OS */
 void VbeInitialize(Multiboot_t *BootInfo) {
 	// Zero out structure
-	memset(&videoTerminal, 0, sizeof(videoTerminal));
+	memset(&s_videoTerminal, 0, sizeof(s_videoTerminal));
 
 	// Initialize lock
-	//SpinlockReset(&videoTerminal.Lock);
+	//SpinlockReset(&s_videoTerminal.Lock);
 
 	// Which kind of mode has been enabled for us
 	switch (BootInfo->VbeMode) {
 
 		// Text-Mode (80x25)
 		case 0: {
-			videoTerminal.Type = VIDEO_TEXT;
-			videoTerminal.Info.Width = 80;
-			videoTerminal.Info.Height = 25;
-			videoTerminal.Info.Depth = 16;
-			videoTerminal.Info.BytesPerScanline = 2 * 80;
-			videoTerminal.Info.FrameBufferAddress = STD_VIDEO_MEMORY;
+			s_videoTerminal.Type = VIDEO_TEXT;
+			s_videoTerminal.Info.Width = 80;
+			s_videoTerminal.Info.Height = 25;
+			s_videoTerminal.Info.Depth = 16;
+			s_videoTerminal.Info.BytesPerScanline = 2 * 80;
+			s_videoTerminal.Info.FrameBufferAddress = STD_VIDEO_MEMORY;
 
-			videoTerminal.CursorLimitX = 80;
-			videoTerminal.CursorLimitY = 25;
-			videoTerminal.FgColor = (0 << 4) | (15 & 0x0F);
-			videoTerminal.BgColor = 0;
+			s_videoTerminal.CursorLimitX = 80;
+			s_videoTerminal.CursorLimitY = 25;
+			s_videoTerminal.FgColor = (0 << 4) | (15 & 0x0F);
+			s_videoTerminal.BgColor = 0;
 		} break;
 
 		// Text-Mode (80x50)
 		case 1: {
-			videoTerminal.Type = VIDEO_TEXT;
-			videoTerminal.Info.Width = 80;
-			videoTerminal.Info.Height = 50;
-			videoTerminal.Info.Depth = 16;
-			videoTerminal.Info.BytesPerScanline = 2 * 80;
-			videoTerminal.Info.FrameBufferAddress = STD_VIDEO_MEMORY;
+			s_videoTerminal.Type = VIDEO_TEXT;
+			s_videoTerminal.Info.Width = 80;
+			s_videoTerminal.Info.Height = 50;
+			s_videoTerminal.Info.Depth = 16;
+			s_videoTerminal.Info.BytesPerScanline = 2 * 80;
+			s_videoTerminal.Info.FrameBufferAddress = STD_VIDEO_MEMORY;
 
-			videoTerminal.CursorLimitX = 80;
-			videoTerminal.CursorLimitY = 50;
-			videoTerminal.FgColor = (0 << 4) | (15 & 0x0F);
-			videoTerminal.BgColor = 0;
+			s_videoTerminal.CursorLimitX = 80;
+			s_videoTerminal.CursorLimitY = 50;
+			s_videoTerminal.FgColor = (0 << 4) | (15 & 0x0F);
+			s_videoTerminal.BgColor = 0;
 		} break;
 
 		// VGA-Mode (Graphics)
 		case 2:
 		{
-			videoTerminal.Type = VIDEO_GRAPHICS;
+			s_videoTerminal.Type = VIDEO_GRAPHICS;
 
-			videoTerminal.CursorLimitX = videoTerminal.Info.Width / (MCoreFontWidth + 2);
-			videoTerminal.CursorLimitY = videoTerminal.Info.Height / MCoreFontHeight;
-			videoTerminal.FgColor = (0 << 4) | (15 & 0x0F);
-			videoTerminal.BgColor = 0;
+			s_videoTerminal.CursorLimitX = s_videoTerminal.Info.Width / (FontWidth + 2);
+			s_videoTerminal.CursorLimitY = s_videoTerminal.Info.Height / FontHeight;
+			s_videoTerminal.FgColor = (0 << 4) | (15 & 0x0F);
+			s_videoTerminal.BgColor = 0;
 		} break;
 
 		// VBE-Mode (Graphics)
@@ -153,35 +163,33 @@ void VbeInitialize(Multiboot_t *BootInfo) {
 			VbeMode_t *vbe = (VbeMode_t*)BootInfo->VbeModeInfo;
 
 			// Copy information over
-			videoTerminal.Type = VIDEO_GRAPHICS;
-			videoTerminal.Info.FrameBufferAddress = vbe->PhysBasePtr;
-			videoTerminal.Info.Width = vbe->XResolution;
-			videoTerminal.Info.Height = vbe->YResolution;
-			videoTerminal.Info.Depth = vbe->BitsPerPixel;
-			videoTerminal.Info.BytesPerScanline = vbe->BytesPerScanLine;
-			videoTerminal.Info.RedPosition = vbe->RedMaskPos;
-			videoTerminal.Info.BluePosition = vbe->BlueMaskPos;
-			videoTerminal.Info.GreenPosition = vbe->GreenMaskPos;
-			videoTerminal.Info.ReservedPosition = vbe->ReservedMaskPos;
-			videoTerminal.Info.RedMask = vbe->RedMaskSize;
-			videoTerminal.Info.BlueMask = vbe->BlueMaskSize;
-			videoTerminal.Info.GreenMask = vbe->GreenMaskSize;
-			videoTerminal.Info.ReservedMask = vbe->ReservedMaskSize;
+			s_videoTerminal.Type = VIDEO_GRAPHICS;
+			s_videoTerminal.Info.FrameBufferAddress = vbe->PhysBasePtr;
+			s_videoTerminal.Info.Width = vbe->XResolution;
+			s_videoTerminal.Info.Height = vbe->YResolution;
+			s_videoTerminal.Info.Depth = vbe->BitsPerPixel;
+			s_videoTerminal.Info.BytesPerScanline = vbe->BytesPerScanLine;
+			s_videoTerminal.Info.RedPosition = vbe->RedMaskPos;
+			s_videoTerminal.Info.BluePosition = vbe->BlueMaskPos;
+			s_videoTerminal.Info.GreenPosition = vbe->GreenMaskPos;
+			s_videoTerminal.Info.ReservedPosition = vbe->ReservedMaskPos;
+			s_videoTerminal.Info.RedMask = vbe->RedMaskSize;
+			s_videoTerminal.Info.BlueMask = vbe->BlueMaskSize;
+			s_videoTerminal.Info.GreenMask = vbe->GreenMaskSize;
+			s_videoTerminal.Info.ReservedMask = vbe->ReservedMaskSize;
 
 			// Clear out background (to white)
-			memset((void*)videoTerminal.Info.FrameBufferAddress, 0xFF,
-				(videoTerminal.Info.BytesPerScanline * videoTerminal.Info.Height));
+			memset((void*)s_videoTerminal.Info.FrameBufferAddress, 0xFF,
+				(s_videoTerminal.Info.BytesPerScanline * s_videoTerminal.Info.Height));
 
-			videoTerminal.CursorLimitX = videoTerminal.Info.Width;
-			videoTerminal.CursorLimitY = videoTerminal.Info.Height;
-			videoTerminal.FgColor = 0;
-			videoTerminal.BgColor = 0xFFFFFFFF;
+			s_videoTerminal.CursorLimitX = s_videoTerminal.Info.Width;
+			s_videoTerminal.CursorLimitY = s_videoTerminal.Info.Height;
+			s_videoTerminal.FgColor = 0;
+			s_videoTerminal.BgColor = 0xFFFFFFFF;
 
 		} break;
 	}
 
-	// Initialize OS video
-	// VideoInitialize();
 }
 
 
@@ -191,5 +199,5 @@ BootTerminal_t*
 VideoGetTerminal()
 {
 	// Simply return the static
-	return &videoTerminal;
+	return &s_videoTerminal;
 }

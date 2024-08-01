@@ -3,4 +3,5 @@
 
 OsStatus_t VideoDrawPixel(unsigned X, unsigned Y, uint32_t Color);
 void VideoInitialize(Multiboot_t* BootInfo);
+
 #endif /* __VIDEO_H__ */

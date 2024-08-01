@@ -28,6 +28,7 @@ unsigned char *memcpy(unsigned char *dest, const unsigned char *src, int count) 
 	return dest;
 }*/
 
+
 /*
  * memsetw
  * Set `count` shorts to `val`.
@@ -45,13 +46,22 @@ unsigned short *memsetw(unsigned short *dest, unsigned short val, int count) {
  * strlen
  * Returns the length of a given `str`.
  */
-int strlen(const char *str) {
+/*int strlen(const char *str) {
 	int i = 0;
 	while (str[i] != (char)0) {
 		++i;
 	}
 	return i;
+}*/
+
+size_t strlen(const char* str) {
+	size_t length = 0;
+	while(str[length] != '\0') {
+		length++;
+	}
+	return length;
 }
+
 
 /*
  * inportb

@@ -8,6 +8,7 @@
 #define UNALIGNED(X)   ((long)X & (LBLOCKSIZE - 1))
 #define TOO_SMALL(LEN) ((LEN) < LBLOCKSIZE)
 
+
 void *memset(void *dest, int c, size_t count)
 {
 	char *s = (char *)dest;

@@ -11,9 +11,9 @@
 #define VIDEO_GRAPHICS		0x00000002
 
 /* Definitions 
- * This is primarily fixed memory addresses that
- * we will need to fall-back to in case no video */
-#define STD_VIDEO_MEMORY		0xB8000
+ * VGA Memory Address
+ */
+#define STD_VIDEO_MEMORY	0xB8000
 
 
 typedef struct VideoDescriptor {
@@ -38,7 +38,6 @@ typedef struct VideoDescriptor {
 
 typedef struct BootTerminal {
 	unsigned int		Type;
-//	Spinlock_t		Lock;
 	VideoDescriptor_t	Info;
 
 // unsigned shorthand for unsigned int

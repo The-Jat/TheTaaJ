@@ -1,10 +1,12 @@
 #include <stdint.h>
 #include <stdlib.h>
+#include <kernel_utilities.h>
 #include <defs.h>
 #include <video/vbe.h>
 #include <datastructure.h>
 
-char *GlbBootVideoWindowTitle = "Welcome to the TaaJ OS.";
+char *g_bootVideoWindowTitle = "Welcome to the TaaJ OS.";
+unsigned int BootTerminalColor = 0xF46F87;
 
 
 /* VideoDrawPixel
@@ -17,7 +19,7 @@ OsStatus_t VideoDrawPixel(unsigned X, unsigned Y, uint32_t Color) {
 	{
 	// Text-Mode
 	case VIDEO_TEXT:
-		return OsError;
+		return Error;
 
 	// VBE
 	case VIDEO_GRAPHICS:
@@ -25,11 +27,11 @@ OsStatus_t VideoDrawPixel(unsigned X, unsigned Y, uint32_t Color) {
 
 	// No video?
 	case VIDEO_NONE:
-		return OsError;
+		return Error;
 	}
 
 	// Uh?
-	return OsError;
+	return Error;
 }
 
 
@@ -64,7 +66,7 @@ VideoDrawCharacter(unsigned X, unsigned Y, int Character, uint32_t Bg, uint32_t 
 	{
 		// Text-Mode
 	case VIDEO_TEXT:
-		return OsError;//TextDrawCharacter(Character, Y, X, LOBYTE(LOWORD(videoTerminal.FgColor)));
+		return Error;//TextDrawCharacter(Character, Y, X, LOBYTE(LOWORD(s_videoTerminal.FgColor)));
 
 		// VBE
 	case VIDEO_GRAPHICS:
@@ -72,37 +74,43 @@ VideoDrawCharacter(unsigned X, unsigned Y, int Character, uint32_t Bg, uint32_t 
 
 		// No video?
 	case VIDEO_NONE:
-		return OsError;
+		return Error;
 	}
 
 	// Uh?
-	return OsError;
+	return Error;
 }
 
-/* VideoDrawBootTerminal
- * Draws the Boot Terminal */
+
+/* VideoDrawBootTerminal: Draws the Boot Terminal
+ * x = x point of Boot Terminal
+ * y = y point of Boot Terminal
+ * Width = Width of the Boot Terminal
+ * Height = Height of the Boot Terminal
+ */
 void VideoDrawBootTerminal(unsigned X, unsigned Y, size_t Width, size_t Height) {
-	// Variables
-	unsigned TitleStartX = X + 8 + 32 + 8;
+
+	char *TitlePtr = (char*)g_bootVideoWindowTitle;
+	int length = strlen(TitlePtr);
+
+	// Title location.
+	unsigned TitleStartX = (VideoGetTerminal()->CursorLimitX / 2) - (length/2)*8;
 	unsigned TitleStartY = Y + 18;
 	int i;
 
-	// Instantiate a pointer to title
-	char *TitlePtr = (char*)GlbBootVideoWindowTitle;
-
 	// Draw the header
 	for (i = 0; i < 48; i++) {
-		VideoDrawLine(X, Y + i, X + Width, Y + i, 0x2980B9);
+		VideoDrawLine(X, Y + i, X + Width, Y + i, BootTerminalColor);
 	}
 	
 	// Draw remaining borders
-	VideoDrawLine(X, Y, X, Y + Height, 0x2980B9);
-	VideoDrawLine(X + Width, Y, X + Width, Y + Height, 0x2980B9);
-	VideoDrawLine(X, Y + Height, X + Width, Y + Height, 0x2980B9);
+	VideoDrawLine(X, Y, X, Y + Height, BootTerminalColor);
+	VideoDrawLine(X + Width, Y, X + Width, Y + Height, BootTerminalColor);
+	VideoDrawLine(X, Y + Height, X + Width, Y + Height, BootTerminalColor);
 
 	// Render title in middle of header
 	while (*TitlePtr) {
-		VideoDrawCharacter(TitleStartX, TitleStartY, *TitlePtr, 0x2980B9, 0xFFFFFF);
+		VideoDrawCharacter(TitleStartX, TitleStartY, *TitlePtr, BootTerminalColor, 0xFFFFFF);
 		TitleStartX += 10;
 		TitlePtr++;
 	}
@@ -121,6 +129,5 @@ void VideoInitialize(Multiboot_t* BootInfo) {
 	VbeInitialize(BootInfo);
 
 	// Draw the Boot Terminal
-	VideoDrawBootTerminal((VideoGetTerminal()->CursorLimitX / 2) - 325, 0, 
-			650, VideoGetTerminal()->Info.Height);
+	VideoDrawBootTerminal(0, 0, VideoGetTerminal()->Info.Width, VideoGetTerminal()->Info.Height);
 }
