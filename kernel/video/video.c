@@ -2,16 +2,20 @@
 #include <stdlib.h>
 #include <kernel_utilities.h>
 #include <defs.h>
+#include <video/video.h>
 #include <video/vbe.h>
 #include <datastructure.h>
 
-char *g_bootVideoWindowTitle = "Welcome to the TaaJ OS.";
-unsigned int BootTerminalColor = 0xF46F87;
+static Terminal_t* s_videoTerminal = NULL;
 
+void VideoSetTerminal(Terminal_t* terminal) {
+	s_videoTerminal = terminal;
+}
 
 /* VideoDrawPixel
  * Draws a pixel of the given color at the specified
- * pixel-position */
+ * pixel-position
+ */
 OsStatus_t VideoDrawPixel(unsigned X, unsigned Y, uint32_t Color) {
 	// Start out by determining the kind
 	// of draw we want to do
@@ -37,7 +41,8 @@ OsStatus_t VideoDrawPixel(unsigned X, unsigned Y, uint32_t Color) {
 
 /* VideoDrawLine
  * Draw's a line from (StartX, StartY) -> (EndX, EndY) 
- * with the given color */
+ * with the given color
+ */
 void VideoDrawLine(unsigned StartX, unsigned StartY, unsigned EndX, unsigned EndY, unsigned Color) {
 	// Variables - clam some values
 	int dx = abs(EndX - StartX), sx = StartX < EndX ? 1 : -1;
@@ -57,9 +62,9 @@ void VideoDrawLine(unsigned StartX, unsigned StartY, unsigned EndX, unsigned End
 
 /* VideoDrawCharacter
  * Renders a character of the given color(s) 
- * at the specified pixel-position */
-OsStatus_t
-VideoDrawCharacter(unsigned X, unsigned Y, int Character, uint32_t Bg, uint32_t Fg) {
+ * at the specified pixel-position
+ */
+OsStatus_t VideoDrawCharacter(unsigned X, unsigned Y, int Character, uint32_t Bg, uint32_t Fg) {
 	// Start out by determining the kind
 	// of draw we want to do
 	switch (VideoGetTerminal()->Type)
@@ -77,95 +82,126 @@ VideoDrawCharacter(unsigned X, unsigned Y, int Character, uint32_t Bg, uint32_t 
 		return Error;
 	}
 
-	// Uh?
 	return Error;
 }
 
 
-/* VideoDrawBootTerminal: Draws the Boot Terminal
- * x = x point of Boot Terminal
- * y = y point of Boot Terminal
- * Width = Width of the Boot Terminal
- * Height = Height of the Boot Terminal
+/* VideoPutCharacter
+ * Uses the vesa-interface to print a new character
+ * at the current terminal position
  */
-void VideoDrawBootTerminal(unsigned X, unsigned Y, size_t Width, size_t Height) {
+OsStatus_t VideoPutCharacter(int Character) {
 
-	char *TitlePtr = (char*)g_bootVideoWindowTitle;
-	int length = strlen(TitlePtr);
-
-	// Title location.
-	unsigned TitleStartX = (VideoGetTerminal()->CursorLimitX / 2) - (length/2)*8;
-	unsigned TitleStartY = Y + 18;
-	int i;
-
-	// Draw the header
-	for (i = 0; i < 48; i++) {
-		VideoDrawLine(X, Y + i, X + Width, Y + i, BootTerminalColor);
-	}
-
-	// Draw remaining borders
-	int borderWidth = 5;
-	// Left border
-	for(int i = 0; i < borderWidth; i++){
-		VideoDrawLine(X + i, Y, X + i, Y + Height, BootTerminalColor);
-	}
-	// Right border
-	for(int i = 0; i < borderWidth; i++) {
-		VideoDrawLine(X + Width - i, Y, X + Width - i, Y + Height, BootTerminalColor);
-	}
-	// Bottom border
-	for(int i = 0; i < borderWidth; i++) {
-		VideoDrawLine(X, Y + Height - i, X + Width, Y + Height - i, BootTerminalColor);
-	}
-
-	// Render title in middle of header
-	while (*TitlePtr) {
-		VideoDrawCharacter(TitleStartX, TitleStartY, *TitlePtr, BootTerminalColor, 0xFFFFFF);
-		TitleStartX += 10;
-		TitlePtr++;
-	}
-
-	// Define some virtual borders to prettify just a little
-	VideoGetTerminal()->CursorX = VideoGetTerminal()->CursorStartX = X + 11;
-	VideoGetTerminal()->CursorLimitX = X + Width - 1;
-	VideoGetTerminal()->CursorY = VideoGetTerminal()->CursorStartY = Y + 49;
-	VideoGetTerminal()->CursorLimitY = Y + Height - 17;
-
-
-	VideoPutString("\n");
-	VideoPutString("\n");
-	VideoPutString("TheJat");
-}
-
-void VideoPutString(const char* str) {
-
-	switch (VideoGetTerminal()->Type)
+	// The first step is to handle special
+	// case characters that we shouldn't print out
+	switch (Character) 
 	{
-	// Text-Mode
-	case VIDEO_TEXT:
-		return Error;
+		// New-Line
+		// Reset X and increase Y
+	case '\n': {
+		s_videoTerminal->CursorX = s_videoTerminal->CursorStartX;
+		s_videoTerminal->CursorY += FontHeight;
+	} break;
 
-	// VBE
-	case VIDEO_GRAPHICS:
-		while(*str != '\0') {
-			VesaPutCharacter(*str);
-			str++;
-		}
-		return Success;
+	// Carriage Return
+	// Reset X don't increase Y
+	case '\r': {
+		s_videoTerminal->CursorX = s_videoTerminal->CursorStartX;
+	} break;
 
-	// No video?
-	case VIDEO_NONE:
-		return Error;
+	// Default
+	// Printable character
+	default: {
+		// Call print with the current location
+		// and use the current colors
+		VesaDrawCharacter(s_videoTerminal->CursorX, s_videoTerminal->CursorY,
+			Character, s_videoTerminal->FgColor, s_videoTerminal->BgColor);
+		s_videoTerminal->CursorX += (FontWidth + 2);
+	} break;
 	}
 
-	return Error;
+	// Next step is to do some post-print
+	// checks, including new-line and scroll-checks
+
+	// Are we at last X position? - New-line
+	if ((s_videoTerminal->CursorX + (FontWidth + 2)) >= s_videoTerminal->CursorLimitX) {
+		s_videoTerminal->CursorX = s_videoTerminal->CursorStartX;
+		s_videoTerminal->CursorY += FontHeight;
+	}
+
+	// Do we need to scroll the terminal?
+	if ((s_videoTerminal->CursorY + FontHeight) >= s_videoTerminal->CursorLimitY) {
+		VideoScroll(1);
+	}
+
+	return Success;
 }
 
-// Initialize the vbe and draw the Boot Terminal
-void VideoInitialize(Multiboot_t* BootInfo) {
-	// Initialize the VBE
-	VbeInitialize(BootInfo);
 
-	// Draw the Boot Terminal
-	VideoDrawBootTerminal(0, 0, VideoGetTerminal()->Info.Width, VideoGetTerminal()->Info.Height);
+void VideoDrawString(const char* str) {
+	while(*str != '\0') {
+		VideoPutCharacter(*str);
+		str++;
+	}
+}
+
+
+/* VesaScroll
+ * Scrolls the terminal <n> lines up by using the
+ * vesa-interface */
+OsStatus_t VideoScroll(int ByLines) {
+	// Variables
+	uint8_t *VideoPtr = NULL;
+	size_t BytesToCopy = 0;
+	int Lines = 0;
+	int i = 0, j = 0;
+
+	// How many lines do we need to modify?
+	Lines = (VideoGetTerminal()->CursorLimitY - VideoGetTerminal()->CursorStartY);
+
+	// Calculate the initial screen position
+	VideoPtr = (uint8_t*)(VideoGetTerminal()->Info.FrameBufferAddress +
+		((VideoGetTerminal()->CursorStartY * VideoGetTerminal()->Info.BytesPerScanline)
+			+ (VideoGetTerminal()->CursorStartX * (VideoGetTerminal()->Info.Depth / 8))));
+
+	// Calculate num of bytes
+	BytesToCopy = ((VideoGetTerminal()->CursorLimitX - VideoGetTerminal()->CursorStartX)
+		* (VideoGetTerminal()->Info.Depth / 8));
+
+	// Do the actual scroll
+	for (i = 0; i < ByLines; i++) {
+		for (j = 0; j < Lines; j++) {
+			memcpy(VideoPtr, VideoPtr +
+				(VideoGetTerminal()->Info.BytesPerScanline * FontHeight), BytesToCopy);
+			VideoPtr += VideoGetTerminal()->Info.BytesPerScanline;
+		}
+	}
+
+	// Clear out the lines that was scrolled
+	VideoPtr = (uint8_t*)(VideoGetTerminal()->Info.FrameBufferAddress +
+		((VideoGetTerminal()->CursorStartX * (VideoGetTerminal()->Info.Depth / 8))));
+
+	// Scroll pointer down to bottom - n lines
+	VideoPtr += (VideoGetTerminal()->Info.BytesPerScanline 
+		* (VideoGetTerminal()->CursorLimitY - (FontHeight * ByLines)));
+
+	// Clear out lines
+	for (i = 0; i < ((int)FontHeight * ByLines); i++) {
+		memset(VideoPtr, 0xFF, BytesToCopy);
+		VideoPtr += VideoGetTerminal()->Info.BytesPerScanline;
+	}
+
+	// We did the scroll, modify cursor
+	VideoGetTerminal()->CursorY -= (FontHeight * ByLines);
+
+	// No errors
+	return Success;
+}
+
+
+Terminal_t*
+VideoGetTerminal()
+{
+	// Simply return the static pointer instance.
+	return s_videoTerminal;
 }

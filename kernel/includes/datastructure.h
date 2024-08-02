@@ -1,5 +1,5 @@
 #ifndef __DATA_STRUCTURE_H__
-#define __DATA_STRCUTURE_H__
+#define __DATA_STRUCTURE_H__
 
 #include <stdint.h>
 
@@ -91,4 +91,4 @@ typedef struct CoreBootInfo {
 } __attribute__((packed)) BootInfo_t;
 
 
-#endif
+#endif /* __DATA_STRUCTURE_H__*/

@@ -11,7 +11,7 @@ BUILD_DIR = $(ROOT_DIR)/build
 VGA_DIR = .
 
 # Define source files
-C_SOURCES = vbe.c video.c font8x16.c
+C_SOURCES = vbe.c video.c font8x16.c boot_terminal.c
 
 # Define object files
 C_OBJECTS = $(C_SOURCES:%.c=$(BUILD_DIR)/%.o)

@@ -5,6 +5,13 @@
 #include <stddef.h>
 #include <defs.h>
 
+
+// Font stuff defined in font8x16.c file.
+extern const uint8_t FontBitmaps[];
+extern const uint32_t FontNumChars;
+extern const uint32_t FontHeight;
+extern const uint32_t FontWidth;
+
 /* Video Type Definitions
  *  */
 #define VIDEO_NONE		0x00000000
@@ -16,43 +23,6 @@
  */
 #define STD_VIDEO_MEMORY	0xB8000
 
-
-typedef struct VideoDescriptor {
-	uintptr_t		FrameBufferAddress;
-	
-	size_t			BytesPerScanline;
-	size_t			Height;
-	size_t			Width;
-	int			Depth;
-
-	int			RedPosition;
-	int			BluePosition;
-	int			GreenPosition;
-	int			ReservedPosition;
-
-	int			RedMask;
-	int			BlueMask;
-	int			GreenMask;
-	int			ReservedMask;
-} __attribute__((packed)) VideoDescriptor_t;
-
-
-typedef struct BootTerminal {
-	unsigned int		Type;
-	VideoDescriptor_t	Info;
-
-// unsigned shorthand for unsigned int
-	unsigned		CursorX;
-	unsigned		CursorY;
-	
-	unsigned		CursorStartX;
-	unsigned		CursorStartY;
-	unsigned		CursorLimitX;
-	unsigned		CursorLimitY;
-
-	uint32_t		FgColor;
-	uint32_t		BgColor;
-} __attribute__((packed)) BootTerminal_t;
 
 /* This is the VBE Graphic Information
  * Descriptor which we have setup in
@@ -95,9 +65,7 @@ typedef struct VbeMode {
 } __attribute__((packed)) VbeMode_t;
 
 
-/* VideoGetTerminal
- * Retrieves the current terminal information */
-BootTerminal_t* VideoGetTerminal(void);
-OsStatus_t VesaPutCharacter(int);
+void set_vbe_mode(const VbeMode_t* mode);
+OsStatus_t VesaDrawPixel(unsigned X, unsigned Y, uint32_t Color);
 
 #endif /* __VBE_H__ */

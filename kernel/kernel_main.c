@@ -1,7 +1,7 @@
 #include <vga.h>
 #include <datastructure.h>
 #include <defs.h>
-#include <video/video.h>
+#include <video/boot_terminal.h>
 
 
 BootInfo_t x86BootInfo;
@@ -25,10 +25,10 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	// Initialize cpu
 	CpuInitialize();
 
-;	init_video();
-;	puts("This is the Kernel main.\n", VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+//	init_video();
+//	puts("This is the Kernel main.\n", VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 
-	VideoInitialize(x86BootInfo.ArchBootInfo);
+	Initialize_BootTerminal(x86BootInfo.ArchBootInfo);
 	// Initialize the system.
 	// Initialize(&x86BootInfo);
 
