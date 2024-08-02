@@ -101,6 +101,114 @@ OsStatus_t TextDrawCharacter(int Character, unsigned CursorY, unsigned CursorX, 
 	return Success;
 }
 
+/* VesaScroll
+ * Scrolls the terminal <n> lines up by using the
+ * vesa-interface */
+OsStatus_t 
+VesaScroll(int ByLines) {
+	// Variables
+	uint8_t *VideoPtr = NULL;
+	size_t BytesToCopy = 0;
+	int Lines = 0;
+	int i = 0, j = 0;
+
+	// How many lines do we need to modify?
+	Lines = (s_videoTerminal.CursorLimitY - s_videoTerminal.CursorStartY);
+
+	// Calculate the initial screen position
+	VideoPtr = (uint8_t*)(s_videoTerminal.Info.FrameBufferAddress +
+		((s_videoTerminal.CursorStartY * s_videoTerminal.Info.BytesPerScanline)
+			+ (s_videoTerminal.CursorStartX * (s_videoTerminal.Info.Depth / 8))));
+
+	// Calculate num of bytes
+	BytesToCopy = ((s_videoTerminal.CursorLimitX - s_videoTerminal.CursorStartX)
+		* (s_videoTerminal.Info.Depth / 8));
+
+	// Do the actual scroll
+	for (i = 0; i < ByLines; i++) {
+		for (j = 0; j < Lines; j++) {
+			memcpy(VideoPtr, VideoPtr +
+				(s_videoTerminal.Info.BytesPerScanline * FontHeight), BytesToCopy);
+			VideoPtr += s_videoTerminal.Info.BytesPerScanline;
+		}
+	}
+
+	// Clear out the lines that was scrolled
+	VideoPtr = (uint8_t*)(s_videoTerminal.Info.FrameBufferAddress +
+		((s_videoTerminal.CursorStartX * (s_videoTerminal.Info.Depth / 8))));
+
+	// Scroll pointer down to bottom - n lines
+	VideoPtr += (s_videoTerminal.Info.BytesPerScanline 
+		* (s_videoTerminal.CursorLimitY - (FontHeight * ByLines)));
+
+	// Clear out lines
+	for (i = 0; i < ((int)FontHeight * ByLines); i++) {
+		memset(VideoPtr, 0xFF, BytesToCopy);
+		VideoPtr += s_videoTerminal.Info.BytesPerScanline;
+	}
+
+	// We did the scroll, modify cursor
+	s_videoTerminal.CursorY -= (FontHeight * ByLines);
+
+	// No errors
+	return Success;
+}
+
+
+/* VesaPutCharacter
+ * Uses the vesa-interface to print a new character
+ * at the current terminal position */
+OsStatus_t VesaPutCharacter(int Character) {
+	// Acquire terminal lock
+	//SpinlockAcquire(&s_videoTerminal.Lock);
+
+	// The first step is to handle special
+	// case characters that we shouldn't print out
+	switch (Character) 
+	{
+		// New-Line
+		// Reset X and increase Y
+	case '\n': {
+		s_videoTerminal.CursorX = s_videoTerminal.CursorStartX;
+		s_videoTerminal.CursorY += FontHeight;
+	} break;
+
+	// Carriage Return
+	// Reset X don't increase Y
+	case '\r': {
+		s_videoTerminal.CursorX = s_videoTerminal.CursorStartX;
+	} break;
+
+	// Default
+	// Printable character
+	default: {
+		// Call print with the current location
+		// and use the current colors
+		VesaDrawCharacter(s_videoTerminal.CursorX, s_videoTerminal.CursorY,
+			Character, s_videoTerminal.FgColor, s_videoTerminal.BgColor);
+		s_videoTerminal.CursorX += (FontWidth + 2);
+	} break;
+	}
+
+	// Next step is to do some post-print
+	// checks, including new-line and scroll-checks
+
+	// Are we at last X position? - New-line
+	if ((s_videoTerminal.CursorX + (FontWidth + 2)) >= s_videoTerminal.CursorLimitX) {
+		s_videoTerminal.CursorX = s_videoTerminal.CursorStartX;
+		s_videoTerminal.CursorY += FontHeight;
+	}
+
+	// Do we need to scroll the terminal?
+	if ((s_videoTerminal.CursorY + FontHeight) >= s_videoTerminal.CursorLimitY) {
+		VesaScroll(1);
+	}
+
+	// Release lock and return OK
+	//SpinlockRelease(&s_videoTerminal.Lock);
+	return Success;
+}
+
 
 /* VbeInitialize
  * Initializes the X86 video sub-system and provides

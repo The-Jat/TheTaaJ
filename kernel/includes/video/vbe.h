@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <defs.h>
 
 /* Video Type Definitions
  *  */
@@ -97,5 +98,6 @@ typedef struct VbeMode {
 /* VideoGetTerminal
  * Retrieves the current terminal information */
 BootTerminal_t* VideoGetTerminal(void);
+OsStatus_t VesaPutCharacter(int);
 
 #endif /* __VBE_H__ */

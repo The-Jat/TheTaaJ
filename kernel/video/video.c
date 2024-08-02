@@ -114,7 +114,9 @@ void VideoDrawBootTerminal(unsigned X, unsigned Y, size_t Width, size_t Height) 
 		VideoDrawLine(X + Width - i, Y, X + Width - i, Y + Height, BootTerminalColor);
 	}
 	// Bottom border
-	VideoDrawLine(X, Y + Height, X + Width, Y + Height, BootTerminalColor);
+	for(int i = 0; i < borderWidth; i++) {
+		VideoDrawLine(X, Y + Height - i, X + Width, Y + Height - i, BootTerminalColor);
+	}
 
 	// Render title in middle of header
 	while (*TitlePtr) {
@@ -128,8 +130,36 @@ void VideoDrawBootTerminal(unsigned X, unsigned Y, size_t Width, size_t Height) 
 	VideoGetTerminal()->CursorLimitX = X + Width - 1;
 	VideoGetTerminal()->CursorY = VideoGetTerminal()->CursorStartY = Y + 49;
 	VideoGetTerminal()->CursorLimitY = Y + Height - 17;
+
+
+	VideoPutString("\n");
+	VideoPutString("\n");
+	VideoPutString("TheJat");
 }
 
+void VideoPutString(const char* str) {
+
+	switch (VideoGetTerminal()->Type)
+	{
+	// Text-Mode
+	case VIDEO_TEXT:
+		return Error;
+
+	// VBE
+	case VIDEO_GRAPHICS:
+		while(*str != '\0') {
+			VesaPutCharacter(*str);
+			str++;
+		}
+		return Success;
+
+	// No video?
+	case VIDEO_NONE:
+		return Error;
+	}
+
+	return Error;
+}
 
 // Initialize the vbe and draw the Boot Terminal
 void VideoInitialize(Multiboot_t* BootInfo) {
