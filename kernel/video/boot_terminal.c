@@ -1,6 +1,7 @@
 #include <video/boot_terminal.h>
 #include <video/video.h>
 #include <video/vbe.h>
+#include <video/vga.h>
 
 static Terminal_t s_bootTerminal;
 static VbeMode_t* vbe;
@@ -28,6 +29,13 @@ void Initialize_BootTerminal(Multiboot_t* BootInfo) {
 
 		// Text-Mode (80x25)
 		case 0: {
+		// If you want to test this, just comment two lines in the stage2.asm
+		/*
+			call VesaSetup
+			&&
+			call VesaFinish
+		*/
+			vga_clear_screen(vga_color(BLACK, WHITE));
 			s_bootTerminal.Type = VIDEO_TEXT;
 			s_bootTerminal.Info.Width = 80;
 			s_bootTerminal.Info.Height = 25;
@@ -37,8 +45,10 @@ void Initialize_BootTerminal(Multiboot_t* BootInfo) {
 
 			s_bootTerminal.CursorLimitX = 80;
 			s_bootTerminal.CursorLimitY = 25;
-			s_bootTerminal.FgColor = (0 << 4) | (15 & 0x0F);
+			s_bootTerminal.FgColor = 0xF0;//(0 << 4) | (15 & 0x0F);
 			s_bootTerminal.BgColor = 0;
+			//memset((void*)s_bootTerminal.Info.FrameBufferAddress, 0x20FF,
+			//	(s_bootTerminal.Info.BytesPerScanline * s_bootTerminal.Info.Height));
 		} break;
 
 		// Text-Mode (80x50)
@@ -52,6 +62,9 @@ void Initialize_BootTerminal(Multiboot_t* BootInfo) {
 
 			s_bootTerminal.CursorLimitX = 80;
 			s_bootTerminal.CursorLimitY = 50;
+			//s_bootTerminal.FgColor = (0 << 4) | (15 & 0x0F);
+			//s_bootTerminal.BgColor = 0;
+			
 			s_bootTerminal.FgColor = (0 << 4) | (15 & 0x0F);
 			s_bootTerminal.BgColor = 0;
 		} break;
@@ -107,6 +120,7 @@ void Initialize_BootTerminal(Multiboot_t* BootInfo) {
 
 	// Draw the Boot Terminal
 	VideoDrawBootTerminal(0, 0, GetBootTerminal()->Info.Width, GetBootTerminal()->Info.Height);
+	//VideoDrawBootTerminal(0, 0, 1, GetBootTerminal()->Info.Height);
 
 }
 
@@ -124,46 +138,66 @@ void VideoDrawBootTerminal(unsigned X, unsigned Y, size_t Width, size_t Height) 
 	int length = strlen(TitlePtr);
 
 	// Title location.
+	//unsigned TitleStartX = 0;
 	unsigned TitleStartX = (GetBootTerminal()->CursorLimitX / 2) - (length/2)*8;
-	unsigned TitleStartY = Y + 18;
+	//unsigned TitleStartY = 1;
+	unsigned TitleStartY = (s_bootTerminal.Type == VIDEO_GRAPHICS) ? Y + 18: Y + 1;
 	int i;
 
+	int headerHeight = (s_bootTerminal.Type == VIDEO_GRAPHICS) ? 48 : 2; 
 	// Draw the header
-	for (i = 0; i < 48; i++) {
-		VideoDrawLine(X, Y + i, X + Width, Y + i, BootTerminalColor);
+	for (i = 0; i < headerHeight; i++) {
+		VideoDrawLine(X, Y + i, X + (Width - 1), Y + i, BootTerminalColor);
 	}
-
 	// Draw remaining borders
-	int borderWidth = 5;
+	int borderWidth = (s_bootTerminal.Type == VIDEO_GRAPHICS) ? 5 : 1;
 	// Left border
 	for(int i = 0; i < borderWidth; i++){
-		VideoDrawLine(X + i, Y, X + i, Y + Height, BootTerminalColor);
+		VideoDrawLine(X + i, Y, X + i, Y + (Height - 1), BootTerminalColor);
 	}
+
 	// Right border
 	for(int i = 0; i < borderWidth; i++) {
-		VideoDrawLine(X + Width - i, Y, X + Width - i, Y + Height, BootTerminalColor);
+		VideoDrawLine(X + (Width-1) - i, Y, X + (Width - 1) - i, Y + (Height - 1), BootTerminalColor);
 	}
 
 	// Bottom border
 	for(int i = 0; i < borderWidth; i++) {
-		VideoDrawLine(X, Y + Height - i, X + Width, Y + Height - i, BootTerminalColor);
+		VideoDrawLine(X, Y + (Height - 1) - i, X + (Width - 1), Y + (Height - 1) - i, BootTerminalColor);
 	}
 
 	// Render title in middle of header
 	while (*TitlePtr) {
+		//TitleStartX++;
+		if(s_bootTerminal.Type == VIDEO_GRAPHICS) {
 		VideoDrawCharacter(TitleStartX, TitleStartY, *TitlePtr, BootTerminalColor, 0xFFFFFF);
-		TitleStartX += 10;
+			TitleStartX += 10;
+		} else {
+		VideoDrawCharacter(TitleStartX, TitleStartY, *TitlePtr, BootTerminalColor, 0xFFFFFF);
+			TitleStartX++;
+		}
 		TitlePtr++;
 	}
 
-	// Define some virtual borders to prettify just a little
-	GetBootTerminal()->CursorX = GetBootTerminal()->CursorStartX = X + 11;
-	GetBootTerminal()->CursorLimitX = X + Width - 1;
-	GetBootTerminal()->CursorY = GetBootTerminal()->CursorStartY = Y + 49;
-	GetBootTerminal()->CursorLimitY = Y + Height - 17;
 
-	// Print the very first line in terminal.
+	// Define some virtual borders to prettify just a little
+	if(s_bootTerminal.Type == VIDEO_GRAPHICS) {
+		GetBootTerminal()->CursorX = GetBootTerminal()->CursorStartX = X + 11;
+		GetBootTerminal()->CursorLimitX = X + Width - 1;
+		GetBootTerminal()->CursorY = GetBootTerminal()->CursorStartY = Y + 49;
+		GetBootTerminal()->CursorLimitY = Y + Height - 17;
+	} else {	
+		GetBootTerminal()->CursorX = GetBootTerminal()->CursorStartX = X + 3;
+		GetBootTerminal()->CursorLimitX = X + Width - 1;
+		GetBootTerminal()->CursorY = GetBootTerminal()->CursorStartY = Y + 3;
+		GetBootTerminal()->CursorLimitY = Y + Height - 2;
+	}
+
 	BootTerminalPrintString("Hey, welcome to the BootTerminal...\n");
+	// Print the very first line in terminal.
+	for(int i = 0; i< 18; i++){
+	BootTerminalPrintString("Next line\n");
+	}
 }
 
 

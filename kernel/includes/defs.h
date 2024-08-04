@@ -15,5 +15,10 @@ typedef enum {
 	#define LOBYTE(l)	((uint8_t)(uint16_t)(l))
 #endif
 
+/* Data manipulation macros */
+#ifndef LOWORD
+#define LOWORD(l)                               ((uint16_t)(uint32_t)(l))
+#endif
+
 
 #endif

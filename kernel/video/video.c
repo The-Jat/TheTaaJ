@@ -5,6 +5,7 @@
 #include <video/video.h>
 #include <video/vbe.h>
 #include <datastructure.h>
+#include <video/vga.h>
 
 static Terminal_t* s_videoTerminal = NULL;
 
@@ -22,8 +23,8 @@ OsStatus_t VideoDrawPixel(unsigned X, unsigned Y, uint32_t Color) {
 	switch (VideoGetTerminal()->Type)
 	{
 	// Text-Mode
-	case VIDEO_TEXT:
-		return Error;
+	case VIDEO_TEXT:			  // FG  ,  BG
+		return VgaDrawPixel(X, Y, vga_color(BLACK, LIGHT_MAGENTA));
 
 	// VBE
 	case VIDEO_GRAPHICS:
@@ -45,8 +46,10 @@ OsStatus_t VideoDrawPixel(unsigned X, unsigned Y, uint32_t Color) {
  */
 void VideoDrawLine(unsigned StartX, unsigned StartY, unsigned EndX, unsigned EndY, unsigned Color) {
 	// Variables - clam some values
-	int dx = abs(EndX - StartX), sx = StartX < EndX ? 1 : -1;
-	int dy = abs(EndY - StartY), sy = StartY < EndY ? 1 : -1;
+	int dx = abs(EndX - StartX);
+	int sx = StartX < EndX ? 1 : -1;
+	int dy = abs(EndY - StartY);
+	int sy = StartY < EndY ? 1 : -1;
 	int err = (dx > dy ? dx : -dy) / 2, e2;
 
 	// Draw the line by brute force
@@ -71,7 +74,9 @@ OsStatus_t VideoDrawCharacter(unsigned X, unsigned Y, int Character, uint32_t Bg
 	{
 		// Text-Mode
 	case VIDEO_TEXT:
-		return Error;//TextDrawCharacter(Character, Y, X, LOBYTE(LOWORD(s_videoTerminal.FgColor)));
+		// unsigned char Foreground = LOBYTE(LOWORD(Fg));
+		// unsigned char Background = LOBYTE(LOWORD(Bg));
+		return TextDrawCharacter(Character, Y, X, vga_color(BLACK, LIGHT_MAGENTA));
 
 		// VBE
 	case VIDEO_GRAPHICS:
@@ -86,11 +91,11 @@ OsStatus_t VideoDrawCharacter(unsigned X, unsigned Y, int Character, uint32_t Bg
 }
 
 
-/* VideoPutCharacter
+/* VesaPutCharacter
  * Uses the vesa-interface to print a new character
  * at the current terminal position
  */
-OsStatus_t VideoPutCharacter(int Character) {
+OsStatus_t VesaPutCharacter(int Character) {
 
 	// The first step is to handle special
 	// case characters that we shouldn't print out
@@ -140,7 +145,15 @@ OsStatus_t VideoPutCharacter(int Character) {
 
 void VideoDrawString(const char* str) {
 	while(*str != '\0') {
-		VideoPutCharacter(*str);
+		switch(s_videoTerminal->Type)
+		{
+		case VIDEO_TEXT:
+			VGAPutCharacter(*str);
+			break;
+		case VIDEO_GRAPHICS:
+			VesaPutCharacter(*str);
+			break;
+		}
 		str++;
 	}
 }
@@ -195,6 +208,147 @@ OsStatus_t VideoScroll(int ByLines) {
 	VideoGetTerminal()->CursorY -= (FontHeight * ByLines);
 
 	// No errors
+	return Success;
+}
+
+
+/* TextDrawCharacter
+ * Renders an ASCII character at the given text-position
+ * on the screen by the given color combination
+ */
+OsStatus_t TextDrawCharacter(int Character, unsigned CursorY, unsigned CursorX, uint8_t Color) {
+	// Variables
+	uint16_t *Video = NULL;
+	uint16_t Data = ((uint16_t)Color << 8) | (uint8_t)(Character & 0xFF);
+
+	// Calculate video position
+	Video = (uint16_t*)VideoGetTerminal()->Info.FrameBufferAddress +
+		(CursorY * VideoGetTerminal()->Info.Width + CursorX);
+
+	// Plot it on the screen
+	*Video = Data;
+
+	// Done - no errors
+	return Success;
+}
+
+inline unsigned char inb(unsigned short port) {
+    unsigned char result;
+    __asm__ __volatile__("inb %1, %0" : "=a"(result) : "dN"(port));
+    return result;
+}
+
+inline unsigned short inw(unsigned short port) {
+    unsigned short result;
+    __asm__ __volatile__("inw %1, %0" : "=a"(result) : "dN"(port));
+    return result;
+}
+
+inline void outb(unsigned short port, unsigned char data) {
+    __asm__ __volatile__("outb %0, %1" : : "a"(data), "dN"(port));
+}
+
+inline void outw(unsigned short port, unsigned short data) {
+    __asm__ __volatile__("outw %0, %1" : : "a"(data), "dN"(port));
+}
+
+inline void inwm(unsigned short port, unsigned char * data, unsigned long size) {
+	asm volatile ("rep insw" : "+D" (data), "+c" (size) : "d" (port) : "memory");
+}
+
+
+/* TextScroll
+ * Scrolls the terminal <n> lines up by using the
+ * text-interface */
+OsStatus_t  TextScroll(int ByLines) {
+	// Variables
+	uint16_t *Video = (uint16_t*)VideoGetTerminal()->Info.FrameBufferAddress;
+	uint16_t Color = (uint16_t)(VideoGetTerminal()->FgColor << 8);
+	unsigned i;
+	int j;
+
+	// Move display n lines up
+	for (j = 0; j < ByLines; j++) {
+		for (i = 0; i < (VideoGetTerminal()->Info.Height - 1) * VideoGetTerminal()->Info.Width;
+			i++) {
+			Video[i] = Video[i + VideoGetTerminal()->Info.Width];
+		}
+
+		// Clear last line
+		for (i = ((VideoGetTerminal()->Info.Height - 2) * VideoGetTerminal()->Info.Width);
+			i < (VideoGetTerminal()->Info.Height * VideoGetTerminal()->Info.Width);
+			i++) {
+			Video[i] = (uint16_t)(Color | ' ');
+		}
+	}
+
+	// Update new Y cursor position
+	VideoGetTerminal()->CursorY = (VideoGetTerminal()->Info.Height - ByLines);
+
+	// Done - no errors
+	return Success;
+}
+
+
+/* TextPutCharacter
+ * Uses the text-interface to print a new character
+ * at the current terminal position */
+OsStatus_t VGAPutCharacter(int Character) {
+	// Variables
+	uint16_t CursorLoc = 0;
+
+	// Special case characters
+	// Backspace
+	if (Character == 0x08 && VideoGetTerminal()->CursorX)
+		VideoGetTerminal()->CursorX--;
+
+	// Tab
+	else if (Character == 0x09)
+		VideoGetTerminal()->CursorX = ((VideoGetTerminal()->CursorX + 8) & ~(8 - 1));
+
+	// Carriage Return
+	else if (Character == '\r')
+		VideoGetTerminal()->CursorX = 3;
+
+	// New Line
+	else if (Character == '\n') {
+		VideoGetTerminal()->CursorX = 3;
+		VideoGetTerminal()->CursorY++;
+	}
+	
+	// Printable characters
+	else if (Character >= ' ') {
+		TextDrawCharacter(Character, VideoGetTerminal()->CursorY, 
+			VideoGetTerminal()->CursorX, LOBYTE(LOWORD(VideoGetTerminal()->FgColor)));
+		VideoGetTerminal()->CursorX++;
+	}
+
+	// Go to new line?
+	if (VideoGetTerminal()->CursorX >= VideoGetTerminal()->Info.Width) {
+		VideoGetTerminal()->CursorX = 0;
+		VideoGetTerminal()->CursorY++;
+	}
+
+	// Scroll if at last line
+	if (VideoGetTerminal()->CursorY >= (VideoGetTerminal()->Info.Height-1)) {
+		// TODO
+		// VGA scroll is not working perfectly.
+		TextScroll(1);
+	}
+
+	// Update HW Cursor
+	CursorLoc = (uint16_t)((VideoGetTerminal()->CursorY * VideoGetTerminal()->Info.Width) 
+		+ VideoGetTerminal()->CursorX);
+
+	// Send the high byte.
+	outb(0x3D4, 14);
+	outb(0x3D5, (uint8_t)(CursorLoc >> 8));
+
+	// Send the low byte.
+	outb(0x3D4, 15);
+	outb(0x3D5, (uint8_t)CursorLoc);
+
+
 	return Success;
 }
 

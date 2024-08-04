@@ -1,5 +1,5 @@
 #include <init.h>
-#include <vga.h>
+#include <vga_print.h>
 
 void Initialize(BootInfo_t *BootInfo) {
 

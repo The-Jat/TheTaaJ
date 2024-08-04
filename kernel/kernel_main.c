@@ -1,4 +1,4 @@
-#include <vga.h>
+#include <vga_print.h>
 #include <datastructure.h>
 #include <defs.h>
 #include <video/boot_terminal.h>

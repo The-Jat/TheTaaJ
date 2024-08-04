@@ -84,25 +84,3 @@ OsStatus_t VesaDrawCharacter(unsigned CursorX, unsigned CursorY, int Character, 
 	return Success;
 }
 
-
-/* TextDrawCharacter
- * Renders an ASCII character at the given text-position
- * on the screen by the given color combination
- */
- /*
-OsStatus_t TextDrawCharacter(int Character, unsigned CursorY, unsigned CursorX, uint8_t Color) {
-	// Variables
-	uint16_t *Video = NULL;
-	uint16_t Data = ((uint16_t)Color << 8) | (uint8_t)(Character & 0xFF);
-
-	// Calculate video position
-	Video = (uint16_t*)s_videoTerminal.Info.FrameBufferAddress +
-		(CursorY * s_videoTerminal.Info.Width + CursorX);
-
-	// Plot it on the screen
-	*Video = Data;
-
-	// Done - no errors
-	return Success;
-}
-*/

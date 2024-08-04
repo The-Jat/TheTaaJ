@@ -24,9 +24,14 @@ void VideoSetTerminal(Terminal_t* terminal);
 OsStatus_t VideoDrawPixel(unsigned X, unsigned Y, uint32_t Color);
 Terminal_t* VideoGetTerminal();
 
-OsStatus_t VideoPutCharacter(int Character);
+OsStatus_t VesaPutCharacter(int Character);
+OsStatus_t VGAPutCharacter(int Character);
+
 void VideoDrawString(const char*);
 
 OsStatus_t VideoScroll(int ByLines);
+
+
+OsStatus_t TextDrawCharacter(int Character, unsigned CursorY, unsigned CursorX, uint8_t Color);
 
 #endif /* __VIDEO_H__ */
