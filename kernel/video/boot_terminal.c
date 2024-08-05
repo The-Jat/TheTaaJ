@@ -193,11 +193,7 @@ void VideoDrawBootTerminal(unsigned X, unsigned Y, size_t Width, size_t Height) 
 		GetBootTerminal()->CursorLimitY = Y + Height - 2;
 	}
 
-	BootTerminalPrintString("Hey, welcome to the BootTerminal...\n");
-	// Print the very first line in terminal.
-	for(int i = 0; i< 18; i++){
-	BootTerminalPrintString("Next line\n");
-	}
+	BootTerminalPrintString("Hey, Welcome to the BootTerminal...\n");
 }
 
 
