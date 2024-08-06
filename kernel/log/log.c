@@ -1,226 +1,23 @@
-/* Includes */
+// Includes
 #include <log/log.h>
 #include <video/boot_terminal.h>
 #include <stdint.h>
 #include <libc/stdarg.h>
 #include <libc/stdio.h>
 
-/* Globals */
-//UUId_t GlbLogFileHandle = UUID_INVALID;
-//BufferObject_t *GlbLogBuffer = NULL;
-char GlbLogStatic[LOG_INITIAL_SIZE];
-LogTarget_t GlbLogTarget = LogConsole;
-LogLevel_t GlbLogLevel = LogLevel1;
-size_t GlbLogSize = 0;
-//CriticalSection_t GlbLogLock;
-char *GlbLog = NULL;
-int GlbLogIndex = 0;
+// Globals
+LogTarget_t g_logTarget = LogConsole;
 
-/* Instantiates the Log
- * with default params */
-// void LogInit(void)
-// {
-// 	/* Save */
-// 	GlbLogTarget = LogMemory;
-// 	GlbLogLevel = LogLevel1;
-
-// 	/* Set log ptr to initial */
-// 	//GlbLogFileHandle = UUID_INVALID;
-// 	//GlbLogBuffer = NULL;
-// 	GlbLog = &GlbLogStatic[0];
-// 	GlbLogSize = LOG_INITIAL_SIZE;
-
-// 	/* Clear out log */
-// 	memset(GlbLog, 0, GlbLogSize);
-// 	GlbLogIndex = 0;
-
-// 	/* Initialize Lock */
-// 	//CriticalSectionConstruct(&GlbLogLock, CRITICALSECTION_PLAIN);
-// }
-
-/* Upgrades the log 
- * with a larger buffer */
-// void LogUpgrade(size_t Size)
-// {
-// 	/* Allocate */
-// 	char *nBuffer = (char*)kmalloc(Size);
-
-// 	/* Zero it */
-// 	memset(nBuffer, 0, Size);
-
-// 	/* Copy current buffer */
-// 	memcpy(nBuffer, GlbLog, GlbLogIndex);
-
-// 	/* Free the old if not initial */
-// 	if (GlbLog != &GlbLogStatic[0])
-// 		kfree(GlbLog);
-
-// 	/* Update */
-// 	GlbLog = nBuffer;
-// 	GlbLogSize = Size;
-// }
-
-// /* Switches target */
-// void LogRedirect(LogTarget_t Output)
-// {
-// 	/* Ignore if already */
-// 	if (GlbLogTarget == Output)
-// 		return;
-
-// 	/* Update target */
-// 	GlbLogTarget = Output;
-
-// 	/* If we redirect to anything else than
-// 	 * memory, flush the log */
-// 	LogFlush(Output);
-// }
-
-// /* Flushes the log */
-// void LogFlush(LogTarget_t Output)
-// {
-// 	/* Valid flush targets are:
-// 	 * Console
-// 	 * File */
-// 	char TempBuffer[256];
-
-// 	/* If we are flushing to anything 
-// 	 * other than a file, and the logfile is 
-// 	 * opened, we close it */
-// 	/*if (GlbLogFileHandle != UUID_INVALID
-// 		&& Output != LogFile)  {
-// 		CloseFile(GlbLogFileHandle);
-// 		GlbLogFileHandle = UUID_INVALID;
-// 	}*/
-
-// 	/* Flush to console? */
-// 	if (Output == LogConsole)
-// 	{
-// 		/* Vars */
-// 		int Index = 0;
-
-// 		/* Iterate */
-// 		while (Index < GlbLogIndex)
-// 		{
-// 			/* Get header information */
-// 			char Type = GlbLog[Index];
-// 			char Length = GlbLog[Index + 1];
-
-// 			/* Zero buffer */
-// 			memset(TempBuffer, 0, 256);
-
-// 			/* What kind of line is this? */
-// 			if (Type == LOG_TYPE_RAW)
-// 			{
-// 				/* Copy data */
-// 				memcpy(TempBuffer, &GlbLog[Index + 2], (size_t)Length);
-
-// 				/* Flush it */
-// 				GetBootTerminal()->FgColor = LOG_COLOR_DEFAULT;
-// 				printf("%s", (const char*)&TempBuffer[0]);
-
-// 				/* Increase */
-// 				Index += 2 + Length;
-// 			}
-// 			else 
-// 			{
-// 				/* We have two chunks to print */
-// 				char *StartPtr = &GlbLog[Index + 2];
-// 				char *StartMsgPtr = strchr(StartPtr, ' ');
-// 				int HeaderLen = (int)StartMsgPtr - (int)StartPtr;
-
-// 				/* Copy */
-// 				memcpy(TempBuffer, StartPtr, HeaderLen);
-
-// 				/* Select Color */
-// 				if (Type == LOG_TYPE_INFORMATION)
-// 					GetBootTerminal()->FgColor = LOG_COLOR_INFORMATION;
-// 				else if (Type == LOG_TYPE_DEBUG)
-// 					GetBootTerminal()->FgColor = LOG_COLOR_DEBUG;
-// 				else if (Type == LOG_TYPE_FATAL)
-// 					GetBootTerminal()->FgColor = LOG_COLOR_ERROR;
-
-// 				/* Print header */
-// 				printf("[%s] ", (const char*)&TempBuffer[0]);
-
-// 				/* Clear */
-// 				memset(TempBuffer, 0, HeaderLen + 1);
-
-// 				/* Increament */
-// 				Index += 2 + HeaderLen + 1;
-
-// 				/* Copy data */
-// 				memcpy(TempBuffer, &GlbLog[Index], (size_t)Length);
-
-// 				/* Sanity */
-// 				if (Type != LOG_TYPE_FATAL)
-// 					GetBootTerminal()->FgColor = LOG_COLOR_DEFAULT;
-
-// 				/* Finally, flush */
-// 				printf("%s", (const char*)&TempBuffer[0]);
-
-// 				/* Restore */
-// 				GetBootTerminal()->FgColor = LOG_COLOR_DEFAULT;
-
-// 				/* Increase again */
-// 				Index += Length;
-// 			}
-// 		}
-// 	}
-// 	// Else if flush to log file...
-// }
-
-/* Internal Log Print */
+// Internal Log Print (common) 
 void LogInternalPrint(int LogType, const char *Header, const char *Message)
 {
-	/* Temporary format buffer 
-	 * used by fileprint */
-	// char TempBuffer[256];
-	// int HeaderLen = strlen(Header);
-	// int MessageLen = strlen(Message);
-
-	/* Acquire Lock */
-	//CriticalSectionEnter(&GlbLogLock);
-
-	/* Log it into memory - if we have room */
-	// if (GlbLogIndex + MessageLen < (int)GlbLogSize)
-	// {
-	// 	/* Write header */
-	// 	GlbLog[GlbLogIndex] = (char)LogType;
-	// 	GlbLog[GlbLogIndex + 1] = (char)MessageLen;
-
-	// 	/* Increase */
-	// 	GlbLogIndex += 2;
-
-	// 	if (LogType != LOG_TYPE_RAW)
-	// 	{
-	// 		/* Add Header */
-	// 		memcpy(&GlbLog[GlbLogIndex], Header, HeaderLen);
-	// 		GlbLogIndex += HeaderLen;
-
-	// 		/* Add a space */
-	// 		GlbLog[GlbLogIndex] = ' ';
-	// 		GlbLogIndex++;
-	// 	}
-
-	// 	/* Add it */
-	// 	memcpy(&GlbLog[GlbLogIndex], Message, MessageLen);
-	// 	GlbLogIndex += MessageLen;
-
-	// 	if (LogType != LOG_TYPE_RAW)
-	// 	{
-	// 		/* Add a newline */
-	// 		GlbLog[GlbLogIndex] = '\n';
-	// 		GlbLogIndex++;
-	// 	}
-	// }
-
-	/* Print it */
-	if (GlbLogTarget == LogConsole) 
+	// Check for target, if it is LogConsole.
+	if (g_logTarget == LogConsole) 
 	{
-		/* Header first */
+		// First handle the header.
 		if (LogType != LOG_TYPE_RAW)
 		{
-			/* Select Color */
+			// Select Color on the basis of LogType
 			if (LogType == LOG_TYPE_INFORMATION)
 				GetBootTerminal()->FgColor = LOG_COLOR_INFORMATION;
 			else if (LogType == LOG_TYPE_DEBUG)
@@ -228,152 +25,39 @@ void LogInternalPrint(int LogType, const char *Header, const char *Message)
 			else if (LogType == LOG_TYPE_FATAL)
 				GetBootTerminal()->FgColor = LOG_COLOR_ERROR;
 
-			/* Print */
+			// Print to the console.
 			printf("[%s] ", Header);
 		}
 
-		/* Sanity */
-		// if (LogType != LOG_TYPE_FATAL)
-		// 	GetBootTerminal()->FgColor = LOG_COLOR_DEFAULT;
+		// Print the Message to the console.
+		printf("%s\n", Message);
 
-		// /* Print */
-		// if (LogType == LOG_TYPE_RAW)
-		// 	printf("%s", Message);
-		// else
-			printf("%s\n", Message);
-
-		/* Restore */
+		// Set console Foreground color to default.
 		GetBootTerminal()->FgColor = LOG_COLOR_DEFAULT;
 	}
-	// else if log to the log file
-
-	/* Release Lock */
-	//CriticalSectionLeave(&GlbLogLock);
 }
 
-/* Raw Log */
-// void Log(const char *Message, ...)
-// {
-// 	/* Output Buffer */
-// 	char oBuffer[256];
-// 	va_list ArgList;
-
-// 	/* Sanitize arguments */
-// 	if (Message == NULL) {
-// 		return;
-// 	}
-
-// 	/* Memset buffer */
-// 	memset(&oBuffer[0], 0, 256);
-
-// 	/* Format string */
-// 	va_start(ArgList, Message);
-// 	vsprintf(oBuffer, Message, ArgList);
-// 	va_end(ArgList);
-
-// 	/* Append newline */
-// 	strcat(oBuffer, "\n");
-
-// 	/* Print */
-// 	LogInternalPrint(LOG_TYPE_RAW, NULL, oBuffer);
-// }
-
-// /* Raw Log */
-// void LogRaw(const char *Message, ...)
-// {
-// 	/* Output Buffer */
-// 	char oBuffer[256];
-// 	va_list ArgList;
-
-// 	/* Sanitize arguments */
-// 	if (Message == NULL) {
-// 		return;
-// 	}
-
-// 	/* Memset buffer */
-// 	memset(&oBuffer[0], 0, 256);
-
-// 	/* Format string */
-// 	va_start(ArgList, Message);
-// 	vsprintf(oBuffer, Message, ArgList);
-// 	va_end(ArgList);
-
-// 	/* Print */
-// 	LogInternalPrint(LOG_TYPE_RAW, NULL, oBuffer);
-// }
-
-/* Output information to log */
+// Output information to log
 void LogInformation(const char *System, const char *Message, ...)
 {
-	/* Output Buffer */
+	// Output Buffer
 	char oBuffer[256];
 	va_list ArgList;
 
-	/* Sanitize arguments */
+	// Sanitize arguments
 	if (System == NULL
 		|| Message == NULL) {
 		return;
 	}
 
-	/* Memset buffer */
+	// Memset buffer, i.e reset
 	memset(&oBuffer[0], 0, 256);
 
-	/* Format string */
+	// Format string
 	va_start(ArgList, Message);
 	vsprintf(oBuffer, Message, ArgList);
 	va_end(ArgList);
 
-	/* Print */
+	// Print
 	LogInternalPrint(LOG_TYPE_INFORMATION, System, oBuffer);
 }
-
-/* Output debug to log */
-// void LogDebug(const char *System, const char *Message, ...)
-// {
-// 	/* Output Buffer */
-// 	char oBuffer[256];
-// 	va_list ArgList;
-
-// 	/* Sanitize arguments */
-// 	if (System == NULL
-// 		|| Message == NULL) {
-// 		return;
-// 	}
-
-// 	/* Memset buffer */
-// 	memset(&oBuffer[0], 0, 256);
-
-// 	/* Format string */
-// 	va_start(ArgList, Message);
-// 	vsprintf(oBuffer, Message, ArgList);
-// 	va_end(ArgList);
-
-// 	/* Print */
-// 	LogInternalPrint(LOG_TYPE_DEBUG, System, oBuffer);
-// }
-
-// /* Output Error to log */
-// void LogFatal(const char *System, const char *Message, ...)
-// {
-// 	/* Output Buffer */
-// 	char oBuffer[256];
-// 	va_list ArgList;
-
-// 	/* Sanitize arguments */
-// 	if (System == NULL
-// 		|| Message == NULL) {
-// 		return;
-// 	}
-
-// 	/* Memset buffer */
-// 	memset(&oBuffer[0], 0, 256);
-
-// 	/* Format string */
-// 	va_start(ArgList, Message);
-// 	vsprintf(oBuffer, Message, ArgList);
-// 	va_end(ArgList);
-
-// 	/* Print */
-// 	LogInternalPrint(LOG_TYPE_FATAL, System, oBuffer);
-// }
-
