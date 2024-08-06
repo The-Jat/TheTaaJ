@@ -4,7 +4,7 @@
 #include <defs.h>
 #include <video/video.h>
 #include <video/vbe.h>
-#include <datastructure.h>
+#include <boot/boot_datastructure.h>
 #include <video/vga.h>
 
 static Terminal_t* s_videoTerminal = NULL;

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <datastructure.h>
+#include <boot/boot_datastructure.h>
 #include <defs.h>
 #include <video/video_descriptor.h>
 #include <video/video.h>

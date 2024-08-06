@@ -1,5 +1,5 @@
 #include <vga_print.h>
-#include <datastructure.h>
+#include <boot/boot_datastructure.h>
 #include <defs.h>
 #include <video/boot_terminal.h>
 #include <log/log.h>

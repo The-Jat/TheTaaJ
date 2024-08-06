@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <video/vbe.h>
-#include <datastructure.h>
+#include <boot/boot_datastructure.h>
 #include <defs.h>
 
 static VbeMode_t s_vbeMode;
