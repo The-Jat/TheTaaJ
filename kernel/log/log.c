@@ -2,8 +2,8 @@
 #include <log/log.h>
 #include <video/boot_terminal.h>
 #include <stdint.h>
-#include <libc/stdarg.h>
-#include <libc/stdio.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 // Globals
 LogTarget_t g_logTarget = LogConsole;

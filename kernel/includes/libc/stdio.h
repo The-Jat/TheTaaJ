@@ -1,7 +1,7 @@
 #ifndef __STDIO_H__
 #define __STDIO_H__
 
-#include <libc/stdarg.h>
+#include <stdarg.h>
 
 int vsprintf(char *str, const char *format, va_list ap);
 

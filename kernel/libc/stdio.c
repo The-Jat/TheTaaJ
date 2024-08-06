@@ -1,4 +1,4 @@
-#include <libc/stdio.h>
+#include <stdio.h>
 #include <video/boot_terminal.h>
 
 void itoa(int value, char* str, int base) {
