@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 // Globals
 LogTarget_t g_logTarget = LogConsole;
@@ -36,6 +37,111 @@ void LogInternalPrint(int LogType, const char *Header, const char *Message)
 		GetBootTerminal()->FgColor = LOG_COLOR_DEFAULT;
 	}
 }
+
+/* Raw Log */
+void Log(const char *Message, ...)
+{
+	/* Output Buffer */
+	char oBuffer[256];
+	va_list ArgList;
+
+	/* Sanitize arguments */
+	if (Message == NULL) {
+		return;
+	}
+
+	/* Memset buffer */
+	memset(&oBuffer[0], 0, 256);
+
+	/* Format string */
+	va_start(ArgList, Message);
+	vsprintf(oBuffer, Message, ArgList);
+	va_end(ArgList);
+
+	/* Append newline */
+	strcat(oBuffer, "\n");
+
+	/* Print */
+	LogInternalPrint(LOG_TYPE_RAW, NULL, oBuffer);
+}
+
+
+// Raw Log
+void LogRaw(const char *Message, ...)
+{
+	/* Output Buffer */
+	char oBuffer[256];
+	va_list ArgList;
+
+	/* Sanitize arguments */
+	if (Message == NULL) {
+		return;
+	}
+
+	/* Memset buffer */
+	memset(&oBuffer[0], 0, 256);
+
+	/* Format string */
+	va_start(ArgList, Message);
+	vsprintf(oBuffer, Message, ArgList);
+	va_end(ArgList);
+
+	/* Print */
+	LogInternalPrint(LOG_TYPE_RAW, NULL, oBuffer);
+}
+
+
+// Output debug to log
+void LogDebug(const char *System, const char *Message, ...)
+{
+	/* Output Buffer */
+	char oBuffer[256];
+	va_list ArgList;
+
+	/* Sanitize arguments */
+	if (System == NULL
+		|| Message == NULL) {
+		return;
+	}
+
+	/* Memset buffer */
+	memset(&oBuffer[0], 0, 256);
+
+	/* Format string */
+	va_start(ArgList, Message);
+	vsprintf(oBuffer, Message, ArgList);
+	va_end(ArgList);
+
+	/* Print */
+	LogInternalPrint(LOG_TYPE_DEBUG, System, oBuffer);
+}
+
+
+// Output Error to log
+void LogFatal(const char *System, const char *Message, ...)
+{
+	/* Output Buffer */
+	char oBuffer[256];
+	va_list ArgList;
+
+	/* Sanitize arguments */
+	if (System == NULL
+		|| Message == NULL) {
+		return;
+	}
+
+	/* Memset buffer */
+	memset(&oBuffer[0], 0, 256);
+
+	/* Format string */
+	va_start(ArgList, Message);
+	vsprintf(oBuffer, Message, ArgList);
+	va_end(ArgList);
+
+	/* Print */
+	LogInternalPrint(LOG_TYPE_FATAL, System, oBuffer);
+}
+
 
 // Output information to log
 void LogInformation(const char *System, const char *Message, ...)

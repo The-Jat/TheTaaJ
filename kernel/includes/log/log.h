@@ -2,7 +2,7 @@
 #define __LOG_H__
 
 
-// Place to log.
+// Place, where to log.
 typedef enum _LogTarget
 {
 	LogMemory,
@@ -25,6 +25,10 @@ typedef enum _LogTarget
 
 // Prototype (Declarations)
 void LogInternalPrint(int LogType, const char *Header, const char *Message);
+void Log(const char *Message, ...);
+void LogRaw(const char *Message, ...);
+void LogDebug(const char *System, const char *Message, ...);
+void LogFatal(const char *System, const char *Message, ...);
 void LogInformation(const char *System, const char *Message, ...);
 
 #endif /* __LOG_H__ */

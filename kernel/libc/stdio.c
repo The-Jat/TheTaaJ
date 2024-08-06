@@ -30,7 +30,7 @@ void itoa(int value, char* str, int base) {
     }
 }
 
-
+// TODO, Handle pointers, unsigned and float
 int vsprintf(char* buffer, const char* format, va_list args) {
     char* buf_ptr = buffer;
     const char* fmt_ptr = format;

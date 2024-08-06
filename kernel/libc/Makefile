@@ -11,7 +11,7 @@ BUILD_DIR = $(ROOT_DIR)/build
 LIBC_DIR = .
 
 # Define source files
-C_SOURCES = stdio.c
+C_SOURCES = stdio.c string.c
 
 # Define object files
 C_OBJECTS = $(C_SOURCES:%.c=$(BUILD_DIR)/%.o)

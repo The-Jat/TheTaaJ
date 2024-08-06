@@ -33,9 +33,15 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	Initialize_BootTerminal(x86BootInfo.ArchBootInfo);
 
 	int abc = 1234567;
+	unsigned int u_int = 987654321;
 	const char* str = "Testing String";
 	LogInformation("k_main", "Testing LogInformation, string = %s, integer = %d", str, abc);
 
+	Log("Log, abc = %d", abc);
+	LogRaw("LogRaw abc = %d", abc);
+	LogDebug("k_main", "LogDebug\n");
+	LogFatal("k_main", "LogFatal");
+	
 	// Initialize the system.
 	// Initialize(&x86BootInfo);
 
