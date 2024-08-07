@@ -4,6 +4,9 @@
 #include <video/boot_terminal.h>
 #include <log/log.h>
 
+// GDT
+#include <arch/x86/x32/gdt.h>
+
 
 BootInfo_t x86BootInfo;
 
@@ -41,6 +44,9 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	LogRaw("LogRaw abc = %d", abc);
 	LogDebug("k_main", "LogDebug\n");
 	LogFatal("k_main", "LogFatal");
+
+	// Initialize the GDT
+	GdtInitialize();
 	
 	// Initialize the system.
 	// Initialize(&x86BootInfo);

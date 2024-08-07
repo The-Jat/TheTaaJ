@@ -6,6 +6,17 @@
 typedef uint32_t                    reg32_t;
 typedef reg32_t                     reg_t;
 
+// Variable Width
+#if defined(_X86_32) || defined(i386)
+	#define __BITS                      32
+	#define __MASK                      0xFFFFFFFF
+	//typedef reg32_t                     reg_t;
+#elif defined(_X86_64)
+	#define __BITS                      64
+	#define __MASK                      0xFFFFFFFFFFFFFFFF
+	//typedef reg64_t                     reg_t;
+#endif
+
 typedef enum {
 	Success,
 	Error
