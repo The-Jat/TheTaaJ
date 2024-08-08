@@ -8,29 +8,25 @@ include $(ROOT_DIR)/config.mk
 
 # Define directories
 BUILD_DIR = $(ROOT_DIR)/build
-INTERRUPTS_DIR = .
+SUBDIRS = pic
 
 # Define source files
-ASM_SOURCES =
-C_SOURCES = interrupts.c
+C_SOURCES = interrupts.c # vbe.c video.c font8x16.c boot_terminal.c vga.c
 
 # Define object files
-ASM_OBJECTS = $(ASM_SOURCES:%.asm=$(BUILD_DIR)/%.o)
 C_OBJECTS = $(C_SOURCES:%.c=$(BUILD_DIR)/%.o)
-OBJECTS = $(ASM_OBJECTS) $(C_OBJECTS)
 
 # Build all
-all: $(BUILD_DIR) $(OBJECTS)
+all: $(BUILD_DIR) $(SUBDIRS) $(C_OBJECTS)
+
+# Recursively call make in each subdirectory
+$(SUBDIRS):
+	$(MAKE) -C $@ ROOT_DIR=$(ROOT_DIR)
 
 # Compile C sources
-$(BUILD_DIR)/%.o: $(INTERRUPTS_DIR)/%.c
+$(BUILD_DIR)/%.o: %.c
 	@echo "Compiling $<..."
-	$(CC) -I $(KERNEL_INCLUDE) -c $< -o $@ $(CFLAGS) -O2 -Wall -Wextra
-
-# Assemble ASM sources
-$(BUILD_DIR)/%.o: $(INTERRUPTS_DIR)/%.asm
-	@echo "Assembling $<..."
-	$(AS) -f elf $< -o $@
+	$(CC) -I $(KERNEL_INCLUDE) -I $(LIBC_INCLUDE) -c $< -o $@ $(CFLAGS) -O2 -Wall -Wextra
 
 # Create build directory if not exists
 $(BUILD_DIR):
@@ -38,7 +34,9 @@ $(BUILD_DIR):
 
 # Clean build directory
 clean:
-	rm -f $(OBJECTS)
+	rm -f $(C_OBJECTS)
+	for dir in $(SUBDIRS); do $(MAKE) -C $$dir ROOT_DIR=$(ROOT_DIR) clean; done
 
 # Phony targets
-.PHONY: all clean
+.PHONY: all clean $(SUBDIRS)
+

@@ -8,7 +8,8 @@
  * and execute the code
  */
 void InterruptEntry(Context_t *Registers) {
-	LogInformation("Interrupts", "InterruptEntry, Interrupt Occurred = %d", Registers->Irq);
+// Handle the interrupts
+	LogFatal("Interrupts", "InterruptEntry, Interrupt Occurred = %d", Registers->Irq);
 	// For the time being, infinity and beyond
 	while(1){}
 }
@@ -17,8 +18,8 @@ void InterruptEntry(Context_t *Registers) {
  * Common entry for all exceptions
  */
 void ExceptionEntry(Context_t *Registers) {
-
-	LogInformation("Interrupts", "ExceptionEntry, Exception Occurred = %d", Registers->Irq);
+// Handle the exceptions
+	LogFatal("Interrupts", "ExceptionEntry, Exception Occurred = %d", Registers->Irq);
 	// For the time being, infinity and beyond
 	while(1){}
 }

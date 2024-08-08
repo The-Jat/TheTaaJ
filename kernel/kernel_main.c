@@ -8,7 +8,8 @@
 #include <arch/x86/x32/gdt.h>
 // IDT
 #include <arch/x86/x32/idt.h>
-
+// PIC
+#include <arch/x86/pic.h>
 
 BootInfo_t x86BootInfo;
 
@@ -58,12 +59,15 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	//int result = b/a;
 	
 	// Generate the interrupt manually
-	asm volatile (
+	/*asm volatile (
 	"int $0x35"
 	:
 	:
 	:
-	);
+	);*/
+
+	// Initialize and Remap the PIC
+	PicInit();
 
 	// Initialize the system.
 	// Initialize(&x86BootInfo);

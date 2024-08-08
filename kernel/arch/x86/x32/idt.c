@@ -34,7 +34,7 @@ void InterruptInstallDefaultGates(void);
 void IdtInstallDescriptor(int IntNum, uintptr_t Base,
 	uint16_t Selector, uint8_t Flags) {
 
-	LogInformation("IDT", "IdtInstallDescriptor, Installing gate for - %d interrupt number.", IntNum);
+//	LogInformation("IDT", "IdtInstallDescriptor, Installing gate for - %d interrupt number.", IntNum);
 
 	/* Set Address */
 	IdtDescriptors[IntNum].BaseLow = (Base & 0xFFFF);
