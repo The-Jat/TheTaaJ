@@ -6,6 +6,8 @@
 
 // GDT
 #include <arch/x86/x32/gdt.h>
+// IDT
+#include <arch/x86/x32/idt.h>
 
 
 BootInfo_t x86BootInfo;
@@ -48,6 +50,21 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	// Initialize the GDT
 	GdtInitialize();
 	
+	// Initialize the IDT
+	IdtInitialize();
+	// Generate the division by zero exception.
+	int a = 0;
+	int b = 1;
+	//int result = b/a;
+	
+	// Generate the interrupt manually
+	asm volatile (
+	"int $0x35"
+	:
+	:
+	:
+	);
+
 	// Initialize the system.
 	// Initialize(&x86BootInfo);
 

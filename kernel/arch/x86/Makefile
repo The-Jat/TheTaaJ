@@ -8,7 +8,7 @@ include $(ROOT_DIR)/config.mk
 
 # Define directories
 BUILD_DIR = $(ROOT_DIR)/build
-SUBDIRS = components x32 # subdir2 # Add your subdirectories here if any
+SUBDIRS = components interrupts x32 # subdir2 # Add your subdirectories here if any
 
 # Define source files
 C_SOURCES = # vbe.c video.c font8x16.c boot_terminal.c vga.c

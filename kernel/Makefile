@@ -10,7 +10,7 @@ include $(ROOT_DIR)/config.mk
 BUILD_DIR := build
 
 # Define directories
-SUBDIRS = arch idt utilities vga video log libc
+SUBDIRS = arch utilities vga video log libc
 
 # Define source files in the root directory
 ROOT_ASM_SOURCES = kernel_entry.asm

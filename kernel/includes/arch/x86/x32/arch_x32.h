@@ -30,4 +30,6 @@
 #endif
 
 
+#define INTERRUPT_SYSCALL				0x80
+
 #endif /* __ARCH_X32_H__ */
