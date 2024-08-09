@@ -38,13 +38,17 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	// Initialize the Boot Terminal
 	Initialize_BootTerminal(x86BootInfo.ArchBootInfo);
 
-	int abc = 1234567;
-	unsigned int u_int = 987654321;
+	int int_type = 1234567;
+	unsigned int u_int = 3123456789;
 	const char* str = "Testing String";
-	LogInformation("k_main", "Testing LogInformation, string = %s, integer = %d", str, abc);
+	void *ptr = (void*) 0xDEADBEEC;
+	double float_type = 1234.567;
+	LogInformation("k_main", "Testing, string = %s, integer = %d, unsigned int = %u", str, int_type, u_int);
+	LogInformation("k_main", "Testing Float, %f", float_type);
+	LogInformation("k_main", "Testing Pointer, %p", ptr);
 
-	Log("Log, abc = %d", abc);
-	LogRaw("LogRaw abc = %d", abc);
+	Log("Log, int_type = %d", int_type);
+	LogRaw("LogRaw int_type = %d", int_type);
 	LogDebug("k_main", "LogDebug\n");
 	LogFatal("k_main", "LogFatal");
 
