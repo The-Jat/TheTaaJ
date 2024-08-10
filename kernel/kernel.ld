@@ -2,7 +2,7 @@ ENTRY(kernel_entry) /* Entry point is the 'kernel_entry' label in stage2.asm */
 
 SECTIONS
 {
-   . = 0x1000000; /* Start address for the binary */
+   . = 0x100000; /* Start address for the binary */
 
     .text : {
         *(.text)

@@ -10,6 +10,8 @@
 #include <arch/x86/x32/idt.h>
 // PIC
 #include <arch/x86/pic.h>
+// Physical Memory
+#include <arch/x86/memory.h>
 
 BootInfo_t x86BootInfo;
 
@@ -52,6 +54,11 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	LogDebug("k_main", "LogDebug\n");
 	LogFatal("k_main", "LogFatal");
 
+	// Print received boot descriptor contents
+	LogInformation("k_main", "Kernel Size (in bytes) = %d", BootDescriptor->KernelSize);
+	LogInformation("k_main", "Kernel Load Address(hex) = %x", BootDescriptor->KernelAddress);
+
+
 	// Initialize the GDT
 	GdtInitialize();
 	
@@ -72,6 +79,8 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 
 	// Initialize and Remap the PIC
 	PicInit();
+	
+	MmPhyiscalInit(BootInfo, BootDescriptor);
 
 	// Initialize the system.
 	// Initialize(&x86BootInfo);

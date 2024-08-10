@@ -146,7 +146,7 @@ stage2_entry:
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Get Best Video Mode and its information
-	call VesaSetup
+	 call VesaSetup
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -224,6 +224,11 @@ extern detect_ata_devices
 extern find_and_load_kernel_from_9660_using_atapi
 extern jump_to_kernel
 
+;; global variable declared in ata.c and has the kernel size
+extern g_kernelSize
+;; global variable declared in elf.c and has the elf kernel load address
+extern g_kernelAddress
+
 ;; Includes
 %include "ata.inc"	; For ATA interface
 %include "print32.inc"	; For Printing in 32 bit assembly
@@ -286,6 +291,12 @@ Temp32Bit:
 	cmp eax, 1		; success kernel was found and loaded.
 	jne ErrorLoadingKernel		; Display error string in case of kernel loading failure.
 
+	;; Get the kernle size from the g_kernelSize variable declared and assigned value in ata.c
+	;; After retrieving the kernel size store it in the OsBootDescriptor Structure, which is to be
+	;; passed to kernel.
+	mov dword eax, [g_kernelSize]
+	mov dword [BootDescriptor + OsBootDescriptor.KernelSize], eax
+
 	;; At this point, kernel was loaded successfully.
 	; Jump if it binary kernel, otherwise read and extract and if it is elf one.
 	; jmp 0x300000		; assembly way, for jumping to the binary kernel
@@ -299,6 +310,12 @@ Temp32Bit:
 	jne elf_reading_loading_error
 
 	;; loading successful
+
+	;; Get the kernle load address from the g_kernelAddress variable declared and assigned value in elf.c
+	;; After retrieving the kernel load address store it in the OsBootDescriptor Structure, which is to be
+	;; passed to kernel.
+	mov dword  eax, [g_kernelAddress]
+	mov dword [BootDescriptor + OsBootDescriptor.KernelAddr], eax
 
 	;; Jump to protected real mode and do vesa things.
 	; Load 16-bit protected mode descriptor
@@ -425,7 +442,7 @@ Temp16Bit:
 	sti
 
 	; Switch Video Mode
-	call 	VesaFinish
+	 call 	VesaFinish
 
 	; Goto Permanent Protected Mode!
 	mov		eax, cr0
@@ -502,7 +519,8 @@ ProtectedMode:
 	mov ebx, BootHeader
 	mov edx, BootDescriptor
 
-	jmp 0x1000000
+	;; Kernel is relocated at 0x100000
+	jmp 0x100000
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

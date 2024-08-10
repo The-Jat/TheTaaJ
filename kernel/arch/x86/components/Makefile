@@ -12,7 +12,7 @@ COMPONENTS_DIR = .
 
 # Define source files
 ASM_SOURCES = cpuid.asm port_io.asm
-C_SOURCES = cpu.c
+C_SOURCES = cpu.c physical_memory.c
 
 # Define object files
 ASM_OBJECTS = $(ASM_SOURCES:%.asm=$(BUILD_DIR)/%.o)
