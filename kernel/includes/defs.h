@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define MAX_SUPPORTED_CPUS			64
+
 typedef uint32_t                    reg32_t;
 typedef reg32_t                     reg_t;
 
@@ -20,6 +22,9 @@ typedef reg32_t                     reg_t;
 	typedef unsigned long long          VirtualAddress_t;
 	//typedef reg64_t                     reg_t;
 #endif
+
+typedef unsigned int	UUId_t;
+typedef unsigned int	Flags_t;
 
 typedef enum {
 	Success,

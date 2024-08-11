@@ -1,15 +1,15 @@
 /* Includes 
- * - System */
+ * - System
+ */
 #include <arch/x86/x32/arch_x32.h>
-//#include <multiboot.h>
 #include <boot/boot_datastructure.h>
 #include <log/log.h>
 #include <arch/x86/memory.h>
 #include <defs.h>
 
 /* Includes 
- * - C-Library */
-//#include <assert.h>
+ * - C-Library
+ */
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -17,7 +17,8 @@
 /* Globals 
  * This is primarily stats and 
  * information about the memory
- * bitmap */
+ * bitmap
+ */
 uintptr_t *MemoryBitmap = NULL;
 size_t MemoryBitmapSize = 0;
 size_t MemoryBlocks = 0;
@@ -89,88 +90,88 @@ void MmMemoryMapUnsetBit(int Bit) {
 /* This function can be used to retrieve
  * a page of memory below the MEMORY_LOW_THRESHOLD 
  * this is useful for devices that use DMA */
-// int MmGetFreeMapBitLow(int Count)
-// {
-// 	/* Variables needed for iteration */
-// 	int i, j, Result = -1;
+int MmGetFreeMapBitLow(int Count)
+{
+	/* Variables needed for iteration */
+	int i, j, Result = -1;
 
-// 	/* Start out by iterating the 
-// 	 * different memory blocks, but always skip
-// 	 * the first mem-block */
-// 	for (i = 1; i < (8 * 16); i++)
-// 	{
-// 		/* Quick-check, if it's maxxed we can skip it 
-// 		 * due to all being allocated */
-// 		if (MemoryBitmap[i] != __MASK) {
-// 			for (j = 0; j < __BITS; j++) {
-// 				if (!(MemoryBitmap[i] & 1 << j)) {
-// 					int Found = 1;
-// 					for (int k = 0, c = j; k < Count && c < __BITS; k++, c++) {
-// 						if (MemoryBitmap[i] & 1 << c) {
-// 							Found = 0;
-// 							break;
-// 						}
-// 					}
-// 					if (Found == 1) {
-// 						Result = (int)((i * __BITS) + j);
-// 						break;
-// 					}
-// 				}
-// 			}
-// 		}
+	/* Start out by iterating the 
+	 * different memory blocks, but always skip
+	 * the first mem-block */
+	for (i = 1; i < (8 * 16); i++)
+	{
+		/* Quick-check, if it's maxxed we can skip it 
+		 * due to all being allocated */
+		if (MemoryBitmap[i] != __MASK) {
+			for (j = 0; j < __BITS; j++) {
+				if (!(MemoryBitmap[i] & 1 << j)) {
+					int Found = 1;
+					for (int k = 0, c = j; k < Count && c < __BITS; k++, c++) {
+						if (MemoryBitmap[i] & 1 << c) {
+							Found = 0;
+							break;
+						}
+					}
+					if (Found == 1) {
+						Result = (int)((i * __BITS) + j);
+						break;
+					}
+				}
+			}
+		}
 
-// 		/* Check for break 
-// 		 * If result is found then we are done! */
-// 		if (Result != -1)
-// 			break;
-// 	}
+		/* Check for break 
+		 * If result is found then we are done! */
+		if (Result != -1)
+			break;
+	}
 
-// 	/* Return frame */
-// 	return Result;
-// }
+	/* Return frame */
+	return Result;
+}
 
 /* This function can be used to retrieve
  * a page of memory above the MEMORY_LOW_THRESHOLD 
  * this should probably be the standard alloc used */
-// int MmGetFreeMapBitHigh(int Count)
-// {
-// 	/* Variables needed for iteration */
-// 	int i, j, Result = -1;
+int MmGetFreeMapBitHigh(int Count)
+{
+	/* Variables needed for iteration */
+	int i, j, Result = -1;
 
-// 	/* Start out by iterating the
-// 	 * different memory blocks, but always skip
-// 	 * the first mem-block */
-// 	for (i = (8 * 16); i < (int)MemoryBlocks; i++)
-// 	{
-// 		/* Quick-check, if it's maxxed we can skip it
-// 		 * due to all being allocated */
-// 		if (MemoryBitmap[i] != __MASK) {
-// 			for (j = 0; j < __BITS; j++) {
-// 				if (!(MemoryBitmap[i] & 1 << j)) {
-// 					int Found = 1;
-// 					for (int k = 0, c = j; k < Count && c < __BITS; k++, c++) {
-// 						if (MemoryBitmap[i] & 1 << c) {
-// 							Found = 0;
-// 							break;
-// 						}
-// 					}
-// 					if (Found == 1) {
-// 						Result = (int)((i * __BITS) + j);
-// 						break;
-// 					}
-// 				}
-// 			}
-// 		}
+	/* Start out by iterating the
+	 * different memory blocks, but always skip
+	 * the first mem-block */
+	for (i = (8 * 16); i < (int)MemoryBlocks; i++)
+	{
+		/* Quick-check, if it's maxxed we can skip it
+		 * due to all being allocated */
+		if (MemoryBitmap[i] != __MASK) {
+			for (j = 0; j < __BITS; j++) {
+				if (!(MemoryBitmap[i] & 1 << j)) {
+					int Found = 1;
+					for (int k = 0, c = j; k < Count && c < __BITS; k++, c++) {
+						if (MemoryBitmap[i] & 1 << c) {
+							Found = 0;
+							break;
+						}
+					}
+					if (Found == 1) {
+						Result = (int)((i * __BITS) + j);
+						break;
+					}
+				}
+			}
+		}
 
-// 		/* Check for break
-// 		 * If result is found then we are done! */
-// 		if (Result != -1)
-// 			break;
-// 	}
+		/* Check for break
+		 * If result is found then we are done! */
+		if (Result != -1)
+			break;
+	}
 
-// 	/* Return frame */
-// 	return Result;
-// }
+	/* Return frame */
+	return Result;
+}
 
 /* One of the two region functions
  * they are helpers in order to either free
@@ -343,88 +344,84 @@ OsStatus_t MmPhyiscalInit(void *BootInfo, OsBootDescriptor *Descriptor)
  * This is the primary function for
  * freeing physical pages, but NEVER free physical
  * pages if they exist in someones mapping */
-// OsStatus_t
-// MmPhysicalFreeBlock(
-// 	_In_ PhysicalAddress_t Address)
-// {
-// 	/* Calculate the bitmap bit */
-// 	int Frame = (int)(Address / PAGE_SIZE);
+OsStatus_t
+MmPhysicalFreeBlock(PhysicalAddress_t Address)
+{
+	/* Calculate the bitmap bit */
+	int Frame = (int)(Address / PAGE_SIZE);
 
-// 	/* Sanitize the address
-// 	 * parameter for ranges */
-// 	assert(Address < MemorySize);
+	/* Sanitize the address
+	 * parameter for ranges */
+//	assert(Address < MemorySize);
 
-// 	/* Get Spinlock */
-// 	SpinlockAcquire(&MemoryLock);
+	/* Get Spinlock */
+//	SpinlockAcquire(&MemoryLock);
 
-// 	/* Sanitize that the page is 
-// 	 * actually allocated */
-// 	assert(MmMemoryMapTestBit(Frame) != 0);
+	/* Sanitize that the page is 
+	 * actually allocated */
+//	assert(MmMemoryMapTestBit(Frame) != 0);
 
-// 	/* Free it */
-// 	MmMemoryMapUnsetBit(Frame);
+	/* Free it */
+	MmMemoryMapUnsetBit(Frame);
 
-// 	/* Release Spinlock */
-// 	SpinlockRelease(&MemoryLock);
+	/* Release Spinlock */
+//	SpinlockRelease(&MemoryLock);
 
-// 	/* Statistics */
-// 	if (MemoryBlocksUsed != 0)
-// 		MemoryBlocksUsed--;
+	/* Statistics */
+	if (MemoryBlocksUsed != 0)
+		MemoryBlocksUsed--;
 
-// 	// Done - no errors
-// 	return OsSuccess;
-// }
+	// Done - no errors
+	return Success;
+}
 
 /* MmPhysicalAllocateBlock
  * This is the primary function for allocating
  * physical memory pages, this takes an argument
  * <Mask> which determines where in memory the allocation is OK */
-// PhysicalAddress_t
-// MmPhysicalAllocateBlock(
-// 	_In_ uintptr_t Mask, 
-// 	_In_ int Count)
-// {
-// 	/* Variables, keep track of 
-// 	 * the frame allocated */
-// 	int Frame = -1;
+PhysicalAddress_t MmPhysicalAllocateBlock(uintptr_t Mask, int Count)
+{
+	/* Variables, keep track of 
+	 * the frame allocated */
+	int Frame = -1;
 
-// 	/* Sanitize params */
-// 	assert(Count > 0);
+	/* Sanitize params */
+//	assert(Count > 0);
 
-// 	/* Get Spinlock */
-// 	SpinlockAcquire(&MemoryLock);
+	/* Get Spinlock */
+//	SpinlockAcquire(&MemoryLock);
 
-// 	/* Calculate which allocation function
-// 	 * to use with the given mask */
-// 	if (Mask <= 0xFFFFFF) {
-// 		Frame = MmGetFreeMapBitLow(Count);
-// 	}
-// 	else {
-// 		Frame = MmGetFreeMapBitHigh(Count);
-// 	}
+	/* Calculate which allocation function
+	 * to use with the given mask */
+	if (Mask <= 0xFFFFFF) {
+		Frame = MmGetFreeMapBitLow(Count);
+	}
+	else {
+		Frame = MmGetFreeMapBitHigh(Count);
+	}
 
-// 	/* Set bit allocated before we 
-// 	 * release the lock, but ONLY if 
-// 	 * the frame is valid */
-// 	if (Frame != -1) {
-// 		for (int i = 0; i < Count; i++) {
-// 			MmMemoryMapSetBit(Frame + i);
-// 		}
-// 	}
+	/* Set bit allocated before we 
+	 * release the lock, but ONLY if 
+	 * the frame is valid */
+	if (Frame != -1) {
+		for (int i = 0; i < Count; i++) {
+			MmMemoryMapSetBit(Frame + i);
+		}
+	}
 
-// 	/* Release lock */
-// 	SpinlockRelease(&MemoryLock);
+	/* Release lock */
+//	SpinlockRelease(&MemoryLock);
 
-// 	/* Sanity */
-// 	assert(Frame != -1);
+	/* Sanity */
+//	assert(Frame != -1);
 
-// 	/* Statistics */
-// 	MemoryBlocksUsed++;
+	/* Statistics */
+	MemoryBlocksUsed++;
 
-// 	/* Calculate the return 
-// 	 * address by multiplying by block size */
-// 	return (PhysicalAddress_t)(Frame * PAGE_SIZE);
-// }
+	/* Calculate the return 
+	 * address by multiplying by block size */
+	return (PhysicalAddress_t)(Frame * PAGE_SIZE);
+}
 
 /* MmPhyiscalGetSysMappingVirtual
  * This function retrieves the virtual address 

@@ -79,8 +79,12 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 
 	// Initialize and Remap the PIC
 	PicInit();
-	
+
+	// Initialize Physical Memory
 	MmPhyiscalInit(BootInfo, BootDescriptor);
+
+	// Initialize Virtual Memory
+	MmVirtualInit();
 
 	// Initialize the system.
 	// Initialize(&x86BootInfo);

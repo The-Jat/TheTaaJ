@@ -4,6 +4,65 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <defs.h>
+#include <boot/boot_datastructure.h>
+
+
+// Structural Sizes
+#define PAGES_PER_TABLE		1024
+#define TABLES_PER_PDIR		1024
+#define TABLE_SPACE_SIZE	0x400000
+#define DIRECTORY_SPACE_SIZE	0xFFFFFFFF
+
+/* Only allocate memory below 4mb */
+#define MEMORY_INIT_MASK	0x3FFFFF
+
+/* Shared PT/Page Definitions */
+#define PAGE_PRESENT		0x1
+#define PAGE_WRITE		0x2
+#define PAGE_USER		0x4
+#define PAGE_WRITETHROUGH	0x8
+#define PAGE_CACHE_DISABLE	0x10
+#define PAGE_ACCESSED		0x20
+
+/* Page Table Definitions */
+#define PAGETABLE_UNUSED	0x40
+#define PAGETABLE_4MB		0x80
+#define PAGETABLE_IGNORED	0x100
+
+/* Page Definitions */
+#define PAGE_DIRTY		0x40
+#define PAGE_UNUSED		0x80
+#define PAGE_GLOBAL		0x100
+
+/* MollenOS PT/Page Definitions */
+#define PAGE_SYSTEM_MAP		0x200
+#define PAGE_INHERITED		0x400
+#define PAGE_VIRTUAL		0x800
+
+/* Masks */
+#define PAGE_MASK		0xFFFFF000
+#define ATTRIBUTE_MASK		0x00000FFF
+
+/* Index's */
+#define PAGE_DIRECTORY_INDEX(x) (((x) >> 22) & 0x3FF)
+#define PAGE_TABLE_INDEX(x) (((x) >> 12) & 0x3FF)
+
+/* Page Table Structure
+ * Denotes how the paging structure is for the X86-32
+ * platform, this is different from X86-64 */
+typedef struct PageTable {
+	uint32_t	Pages[PAGES_PER_TABLE];
+} __attribute__((packed)) PageTable_t;
+
+
+/* Page Directory Structure
+ * Denotes how the paging structure is for the X86-32
+ * platform, this is different from X86-64 */
+typedef struct PageDirectory {
+	uint32_t	pTables[TABLES_PER_PDIR];	// Seen by MMU
+	uint32_t	vTables[TABLES_PER_PDIR];	// Not seen by MMU
+	//Mutex_t		Lock;				// Not seen by MMU
+} __attribute__((packed)) PageDirectory_t;
 
 /* Memory Map Structure 
  * This is the structure passed to us by
@@ -31,5 +90,18 @@ typedef struct SystemMemoryMapping {
  * It reads the multiboot memory descriptor(s), initialies
  * the bitmap and makes sure reserved regions are allocated */
 OsStatus_t MmPhyiscalInit(void *BootInfo, OsBootDescriptor *Descriptor);
+
+/* MmPhysicalAllocateBlock
+ * This is the primary function for allocating
+ * physical memory pages, this takes an argument
+ * <Mask> which determines where in memory the allocation is OK */
+PhysicalAddress_t MmPhysicalAllocateBlock(uintptr_t Mask, int Count);
+
+
+/* MmVirtualInit
+ * Initializes the virtual memory system and
+ * installs default kernel mappings
+ */
+OsStatus_t MmVirtualInit(void);
 
 #endif /* __MEMORY_H__ */

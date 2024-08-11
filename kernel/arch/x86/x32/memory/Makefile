@@ -1,4 +1,4 @@
-# arch/x86/x32/Makefile
+# arch/x86/x32/memory/Makefile
 
 # Ensure ROOT_DIR is set, defaulting to one level up if not provided
 ROOT_DIR ?= $(abspath ..)
@@ -8,12 +8,11 @@ include $(ROOT_DIR)/config.mk
 
 # Define directories
 BUILD_DIR = $(ROOT_DIR)/build
-X32_DIR = .
-SUBDIRS = memory
+MEMORY_DIR = .
 
 # Define source files
-ASM_SOURCES = gdt_asm.asm tss_asm.asm idt_asm.asm irq.asm
-C_SOURCES = gdt.c idt.c
+ASM_SOURCES = paging.asm
+C_SOURCES = virtual_memory.c
 
 # Define object files
 ASM_OBJECTS = $(ASM_SOURCES:%.asm=$(BUILD_DIR)/%.o)
@@ -21,19 +20,15 @@ C_OBJECTS = $(C_SOURCES:%.c=$(BUILD_DIR)/%.o)
 OBJECTS = $(ASM_OBJECTS) $(C_OBJECTS)
 
 # Build all
-all: $(BUILD_DIR) $(SUBDIRS) $(OBJECTS)
-
-# Recursively call make in each subdirectory
-$(SUBDIRS):
-	$(MAKE) -C $@ ROOT_DIR=$(ROOT_DIR)
+all: $(BUILD_DIR) $(OBJECTS)
 
 # Compile C sources
-$(BUILD_DIR)/%.o: $(X32_DIR)/%.c
+$(BUILD_DIR)/%.o: $(MEMORY_DIR)/%.c
 	@echo "Compiling $<..."
 	$(CC) -I $(KERNEL_INCLUDE) -c $< -o $@ $(CFLAGS) -O2 -Wall -Wextra
 
 # Assemble ASM sources
-$(BUILD_DIR)/%.o: $(X32_DIR)/%.asm
+$(BUILD_DIR)/%.o: $(MEMORY_DIR)/%.asm
 	@echo "Assembling $<..."
 	$(AS) -f elf $< -o $@
 
@@ -44,7 +39,6 @@ $(BUILD_DIR):
 # Clean build directory
 clean:
 	rm -f $(OBJECTS)
-	for dir in $(SUBDIRS); do $(MAKE) -C $$dir ROOT_DIR=$(ROOT_DIR) clean; done
 
 # Phony targets
-.PHONY: all clean $(SUBDIRS)
+.PHONY: all clean
