@@ -177,8 +177,9 @@ OsStatus_t VideoScroll(int ByLines) {
 		((VideoGetTerminal()->CursorStartY * VideoGetTerminal()->Info.BytesPerScanline)
 			+ (VideoGetTerminal()->CursorStartX * (VideoGetTerminal()->Info.Depth / 8))));
 
+	int borderWidth = (VideoGetTerminal()->Type == VIDEO_GRAPHICS) ? 5 : 1;
 	// Calculate num of bytes
-	BytesToCopy = ((VideoGetTerminal()->CursorLimitX - VideoGetTerminal()->CursorStartX)
+	BytesToCopy = ((VideoGetTerminal()->CursorLimitX - borderWidth - VideoGetTerminal()->CursorStartX)
 		* (VideoGetTerminal()->Info.Depth / 8));
 
 	// Do the actual scroll
