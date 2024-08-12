@@ -155,6 +155,14 @@ stage2_entry:
 ;	call GetKeyInputWithoutBIOS
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Wait for the boot key to be pressed, which is space key
+	call check_for_boot_keys
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Temporary Infinite Loop, until we set up the boot menu
+jmp $
+
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Load Flat Kernel of Size 1 KB at location 0xB000
 ;	xor eax, eax		; Clear out the eax
