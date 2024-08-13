@@ -158,10 +158,9 @@ stage2_entry:
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Wait for the boot key to be pressed, which is space key
-	call check_for_boot_keys
+;	call check_for_boot_keys
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Temporary Infinite Loop, until we set up the boot menu
-jmp $
+
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Load Flat Kernel of Size 1 KB at location 0xB000
@@ -237,6 +236,9 @@ extern g_kernelSize
 ;; global variable declared in elf.c and has the elf kernel load address
 extern g_kernelAddress
 
+;; Defined in boot_menu.c file
+extern DrawBootMenu
+
 ;; Includes
 %include "ata.inc"	; For ATA interface
 %include "print32.inc"	; For Printing in 32 bit assembly
@@ -258,6 +260,11 @@ Temp32Bit:
 
 	;; Clear the screen
 	call ClearScreen32
+
+	; TODO call only on specified key press
+	;; Draw the Boot BootMenu
+	call DrawBootMenu
+jmp $	; Temp Infinite Loop
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Print welcome sentence for protected mode
