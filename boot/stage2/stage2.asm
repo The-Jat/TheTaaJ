@@ -239,6 +239,8 @@ extern g_kernelAddress
 ;; Defined in boot_menu.c file
 extern DrawBootMenu
 
+extern create_menu
+
 ;; Includes
 %include "ata.inc"	; For ATA interface
 %include "print32.inc"	; For Printing in 32 bit assembly
@@ -263,7 +265,8 @@ Temp32Bit:
 
 	; TODO call only on specified key press
 	;; Draw the Boot BootMenu
-	call DrawBootMenu
+	call create_menu
+;	call DrawBootMenu
 jmp $	; Temp Infinite Loop
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -44,9 +44,12 @@ ISO9660.elf: boot/stage2/ISO9660.c
 boot_menu.elf: boot/stage2/boot_menu.c
 	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -I $(BOOT_STAGE2_C_STD_INCLUDE) -c boot/stage2/boot_menu.c -o build/boot_menu.elf
 
-stage2.bin: stage2.elf ata.elf elf.elf print.elf port_io.elf mem.elf ISO9660.elf boot_menu.elf
+menu.elf: boot/stage2/menu.c
+	gcc -m32 -fno-pie -ffreestanding -I $(BOOT_STAGE2_C_INCLUDE) -I $(BOOT_STAGE2_C_STD_INCLUDE) -c boot/stage2/menu.c -o build/menu.elf
+
+stage2.bin: stage2.elf ata.elf elf.elf print.elf port_io.elf mem.elf ISO9660.elf boot_menu.elf menu.elf
 #	ld -m elf_i386 -Ttext 0x0500 --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf
-	ld -m elf_i386 -T boot/stage2/stage2.ld --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf build/port_io.elf build/ata.elf build/mem.elf build/ISO9660.elf build/boot_menu.elf
+	ld -m elf_i386 -T boot/stage2/stage2.ld --oformat binary -o build/stage2.bin build/stage2.elf build/elf.elf build/print.elf build/port_io.elf build/ata.elf build/mem.elf build/ISO9660.elf build/boot_menu.elf build/menu.elf
 
 # build kernel
 kernel.elf:
