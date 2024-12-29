@@ -87,7 +87,7 @@ stage2_entry:
 	;; The value will be received in reverse order,
 	;; such that the value pushed lastly in stage 1 will be the one
 	;; which will be popped first from the stack
-	;;	|	| Top (Low Memory Area)
+	;;	|       | Top (Low Memory Area)
 	;;	|  108	|
 	;;	|-------|
 	;;	|  107	| Bottom (High Memory Area)
@@ -265,9 +265,10 @@ Temp32Bit:
 
 	; TODO call only on specified key press
 	;; Draw the Boot BootMenu
-	call create_menu
+;; uncomment below 2 lines of code to show the boot menu
+;	call create_menu
 ;	call DrawBootMenu
-jmp $	; Temp Infinite Loop
+;jmp $	; Temp Infinite Loop
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Print welcome sentence for protected mode

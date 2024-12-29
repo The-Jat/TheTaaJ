@@ -58,6 +58,11 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	LogInformation("k_main", "Kernel Size (in bytes) = %d", BootDescriptor->KernelSize);
 	LogInformation("k_main", "Kernel Load Address(hex) = %x", BootDescriptor->KernelAddress);
 
+	// Test Video Text Scrollling
+/*	for(int i = 0; i< 20; i++){
+		LogInformation("Test", "Line = %d, a b c d e f g h i j k l m n o p q r s t u v w x y z  A B C D E F G H I J K L M N O P Q R S T U V W X Y Z", i);
+	}*/
+	//while(1){}
 
 	// Initialize the GDT
 	GdtInitialize();
@@ -69,13 +74,13 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	int b = 1;
 	//int result = b/a;
 	
-	// Generate the interrupt manually
-	/*asm volatile (
-	"int $0x35"
-	:
-	:
-	:
-	);*/
+	// Generate the interrupt manually, for it uncomment below lines.
+	// asm volatile (
+	// "int $0x35"
+	// :
+	// :
+	// :
+	// );
 
 	// Initialize and Remap the PIC
 	PicInit();
@@ -85,6 +90,7 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 
 	// Initialize Virtual Memory
 	MmVirtualInit();
+	// Log("k_main Kernel Infinite Loop");
 
 	// Initialize the system.
 	// Initialize(&x86BootInfo);

@@ -87,7 +87,7 @@ run:
 #	qemu-system-x86_64 -drive  format=raw,file=build/disk.img
 	
 # from iso image
-	qemu-system-x86_64 -cdrom image.iso
+	qemu-system-x86_64 -m 512M  -cdrom image.iso
 
 # Utilities
 utilities:

@@ -533,6 +533,7 @@ MmVirtualInit(void)
 	// Update and switch page-directory for boot-cpu
 	MmVirtualSwitchPageDirectory(0, g_KernelPageDirectory, (uintptr_t)g_KernelPageDirectory);
 	memory_set_paging(1);
+	// LogInformation("Virtual_Memory", "done");
 
 	// Setup kernel addressing space
 	KernelSpace.Flags = AS_TYPE_KERNEL;

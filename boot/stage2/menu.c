@@ -35,6 +35,16 @@ Menu* Menu_Create(menu_type type, const char* title) {
 
 	// Hide the menu by default
 	menu->isHidden = 1;
+	
+	if(title != (void*)0) {
+		menu->title = (char*)stage2_malloc(strlen(title) + 1);
+		for (int i = 0; i<= strlen(title); i++) {
+			menu->title[i] = title[i];
+		}
+		
+	} else {
+		menu->title = (void*)0;
+	}
 
 	return menu;
 }
@@ -161,7 +171,7 @@ void system_reboot(Menu* menu, MenuItem* item) {
 
 
 void create_menu() {
-	Menu* menu = Menu_Create(MAIN_MENU, "Main_Menu");
+	Menu* menu = Menu_Create(MAIN_MENU, "Boot Main Menu");
 	
 	// Create Main Menu Items
 	MenuItem* item1 = MenuItem_Create("Item1", subMenues());
@@ -480,6 +490,13 @@ void draw_menu(Menu* menu) {
 	MenuItem *currentItem = menu->head;
 	int line = 0;
 
+	// Print title
+	if (menu->title != (void*)0) {
+		console_set_cursor(g_OffsetX, g_FirstLine - 2);
+		console_set_color(c_TitleColor, c_TitleBackgroundColor);
+		Console_WriteString(menu->title);
+	}
+
 	while (currentItem != (void*)0) {
 		// Check if it is separator
 		if (currentItem->type == MENU_ITEM_SEPARATOR) {
@@ -602,8 +619,15 @@ void run_menu(Menu* menu) {
 			case 0x48: // up key
 				select_previous_item(menu);
 				selected--;
-				if (selected < 0) {
+				if (selected <= 0) {
 					selected = menu->itemCount;
+				}
+				if (menu->itemCount > menu_height()) {
+					if (selected == menu->itemCount) {
+						g_MenuOffset = menu->itemCount - menu_height();
+					} else if (selected <= g_MenuOffset) {
+						g_MenuOffset--;
+					}
 				}
 				break;
 			case 0x50: // down key

@@ -36,6 +36,9 @@ const console_color c_ArrowColor = GRAY;
 const console_color c_SliderColor = CYAN;
 const console_color c_SliderBackgroundColor = DARK_GRAY;
 
+const console_color c_TitleColor = MAGENTA;
+const console_color c_TitleBackgroundColor = c_BackgroundColor;
+
 typedef enum {
 	MAIN_MENU = 1,
 	CHOICE_MENU,

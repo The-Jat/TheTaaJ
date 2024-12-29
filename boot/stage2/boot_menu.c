@@ -1,5 +1,11 @@
 #include <port_io.h>
 
+typedef struct {
+	int resolution;
+	int otherOption;
+} BootOptions;
+
+BootOptions bootOptions = {0, 0}; // Default values
 
 typedef void (*MenuAction)(void);
 
@@ -7,7 +13,9 @@ typedef void (*MenuAction)(void);
 typedef struct {
 	char *heading;
 	MenuAction action;
-	MenuAction submenu;
+	int selected; // 0: unselected, 1: selected
+	//MenuAction submenu;
+	struct BootMenu *submenu;
 } MenuItem;
 
 
@@ -29,10 +37,33 @@ void loadConfiguration2() {
 	print_("audio things");
 }
 
+void resolution1(){
+	clear_();
+	print_("800x600 selected");
+}
+
+
+void resolution2(){
+	clear_();
+	print_("1024x768 selected");
+}
+
+
+MenuItem resolutionMenuItems[] =  {
+	{"800x600", resolution1, 1, (void*)0},
+	{"1024x768", resolution2, 0, (void*)0}
+};
+
+BootMenu resolutionMenu = {
+	.items = resolutionMenuItems,
+	.count = sizeof(resolutionMenuItems) / sizeof(MenuItem),
+	.selected = 0
+	};
 
 void resolutionSubMenu() {
 	clear_();
-	print_("resolution submenu");
+	//print_("resolution submenu");
+	handleMenuSelection(&resolutionMenu);
 }
 
 
@@ -122,12 +153,19 @@ void displayMenu(const BootMenu* menu) {
 	
 		if (i == menu->selected) {
 			print_(" > ");
-			print_(menu->items[i].heading);
+			//print_(menu->items[i].heading);
 		} else {
 		
 			print_("   ");
-			print_(menu->items[i].heading);
+			//print_(menu->items[i].heading);
 		}
+		
+		if(menu->items[i].selected) {
+			print_("[X] ");
+		} else {
+			print_("[ ] ");
+		}
+		print_(menu->items[i].heading);
 		print_("\n");
 	
 	}
@@ -135,7 +173,8 @@ void displayMenu(const BootMenu* menu) {
 }
 
 
-void handleMenuSelection(BootMenu* menu) {
+
+int handleMenuSelection(BootMenu* menu) {
 	int running = 1;
 	char choice;
 	
@@ -168,24 +207,39 @@ void handleMenuSelection(BootMenu* menu) {
 				break;
 			case 0x1c: // Enter key
 				if(menu->items[menu->selected].submenu != (void*)0) {
-					menu->items[menu->selected].submenu();
+					//menu->items[menu->selected].submenu();
+					handleMenuSelection( menu->items[menu->selected].submenu);
+					//print_("sub");
+				//} else if (menu->items[menu->selected].action != (void*)0) {
+					//menu->items[menu->selected].action();
+					
+					//return 1;
 				} else {
-					menu->items[menu->selected].action();
-				}
-				running = 0;
+					menu->items[menu->selected].selected = !menu->items[menu->selected].selected;
+					if (menu == &resolutionMenu) {
+						bootOptions.resolution = menu->selected;
+					}
+					}
+				//running = 1;
+				//break;
 				break;
+			case 0x01: // Escape key
+				//running = 0;
+				//break;
+				return 1;
 			default:
 				break;
 		}
 	}
+	return 0;
 
 }
 
 
 void DrawBootMenu () {
 	MenuItem menuItems[] = {
-	 {"Select Resolution", videoModes, resolutionSubMenu},
-	 {"Other Options", loadConfiguration2, (void*)0}
+	 {"Select Resolution", videoModes, 0, &resolutionMenu},
+	 {"Other Options", loadConfiguration2, 0, (void*)0}
 	};
 
 	// Define the boot menu
@@ -195,6 +249,11 @@ void DrawBootMenu () {
 		.selected = 0
 	};
 
+	// int continueRunning = 1;
+	// while(continueRunning) {
+
+	// continueRunning =
 	handleMenuSelection(&bootMenu);
+	//}
 
 }

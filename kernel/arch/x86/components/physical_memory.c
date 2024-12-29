@@ -256,7 +256,9 @@ OsStatus_t MmPhyiscalInit(void *BootInfo, OsBootDescriptor *Descriptor)
 
 	/* Sanity, we need AT LEAST 32 mb to run! */
 	//assert((MemorySize / 1024 / 1024) >= 32);
-	LogInformation("Physical_Memory", "MmPhyiscalInit, Memory Size = %d bytes", MemorySize);
+	LogInformation("Physical_Memory", "MmPhyiscalInit, Low Memory Size = %d bytes", BootDesc->MemoryLow );
+	LogInformation("Physical_Memory", "MmPhyiscalInit, High Memory Size = %d bytes", BootDesc->MemoryHigh * 64 * 1024);
+	LogInformation("Physical_Memory", "MmPhyiscalInit, Total Memory Size = %d bytes", MemorySize);
 
 	/* Set storage variables 
 	 * We have the bitmap normally at 2mb mark */
@@ -265,6 +267,8 @@ OsStatus_t MmPhyiscalInit(void *BootInfo, OsBootDescriptor *Descriptor)
 	 LogInformation("Physical_Memory", "MmPhyiscalInit, MemoryBlocks = %d", MemoryBlocks);
 	 MemoryBlocksUsed = MemoryBlocks;
 	 MemoryBitmapSize = DIVUP(MemoryBlocks, 8); /* 8 blocks per byte, 32/64 per int */
+	 LogInformation("Physical_Memory", "MmPhyiscalInit, MemoryBitmapSize = %d", MemoryBitmapSize);
+
 
 	// /* Set all memory in use */
 	 memset((void*)MemoryBitmap, 0xFFFFFFFF, MemoryBitmapSize);
