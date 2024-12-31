@@ -66,6 +66,8 @@ typedef struct VbeMode {
 
 
 void set_vbe_mode(const VbeMode_t* mode);
+// Update the frame buffer address.
+void updatePhysBasePtr(uint32_t virtualPhysBasePtr);
 OsStatus_t VesaDrawPixel(unsigned X, unsigned Y, uint32_t Color);
 
 #endif /* __VBE_H__ */

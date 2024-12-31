@@ -23,6 +23,10 @@ void set_vbe_mode(const VbeMode_t* mode) {
 	s_vbeMode = *mode;
 }
 
+// Updates the frame buffer address (used when virtual memory is implemented)
+void updatePhysBasePtr(uint32_t virtualPhysBasePtr) {
+	s_vbeMode.PhysBasePtr = virtualPhysBasePtr;
+}
 
 /* VesaDrawPixel
  * Uses the vesa-interface to plot a single pixel

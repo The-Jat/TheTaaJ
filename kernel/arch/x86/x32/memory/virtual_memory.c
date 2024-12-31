@@ -7,6 +7,9 @@
 #include <system/address_space.h>
 #include <video/video.h>
 
+// For physical base pointer
+#include <video/vbe.h>
+
 /* Includes
  * - Library
  */
@@ -529,17 +532,18 @@ MmVirtualInit(void)
 
 	// Update video address to the new
 	VideoGetTerminal()->Info.FrameBufferAddress = MEMORY_LOCATION_VIDEO;
+	// Update video address to the new for the printing string.
+	updatePhysBasePtr(MEMORY_LOCATION_VIDEO);
 
 	// Update and switch page-directory for boot-cpu
 	MmVirtualSwitchPageDirectory(0, g_KernelPageDirectory, (uintptr_t)g_KernelPageDirectory);
 	memory_set_paging(1);
-	// LogInformation("Virtual_Memory", "done");
-
 	// Setup kernel addressing space
 	KernelSpace.Flags = AS_TYPE_KERNEL;
 	KernelSpace.Cr3 = (uintptr_t)g_KernelPageDirectory;
 	KernelSpace.PageDirectory = g_KernelPageDirectory;
 
+	LogInformation("Virtual_Memory", "done");
 	// Done! 
 	return AddressSpaceInitKernel(&KernelSpace);
 }
