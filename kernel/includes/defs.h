@@ -26,6 +26,15 @@ typedef reg32_t                     reg_t;
 typedef unsigned int	UUId_t;
 typedef unsigned int	Flags_t;
 
+#ifndef __EXTERN
+	#define __EXTERN extern
+#endif
+
+#ifndef __CONST
+	#define __CONST const
+#endif
+
+
 typedef enum {
 	Success,
 	Error
@@ -39,8 +48,19 @@ typedef enum {
 
 /* Data manipulation macros */
 #ifndef LOWORD
-#define LOWORD(l)                               ((uint16_t)(uint32_t)(l))
+	#define LOWORD(l)                               ((uint16_t)(uint32_t)(l))
 #endif
+
+
+/* Utils Definitions */
+#define MIN(a,b)                                (((a)<(b))?(a):(b))
+#define MAX(a,b)                                (((a)>(b))?(a):(b))
+#define DIVUP(a, b)                             ((a / b) + (((a % b) > 0) ? 1 : 0))
+#define INCLIMIT(i, limit)                      i++; if (i == limit) i = 0;
+#define ADDLIMIT(Base, Current, Step, Limit)    ((Current + Step) >= Limit) ? Base : (Current + Step) 
+#define ALIGN(Val, Alignment, Roundup)          ((Val & (Alignment-1)) > 0 ? (Roundup == 1 ? ((Val + Alignment) & ~(Alignment-1)) : Val & ~(Alignment-1)) : Val)
+#define ISALIGNED(Val, Alignment)               ((Val & (Alignment-1)) == 0)
+#define BOCHSBREAK                              __asm__ __volatile__ ("xchg %bx, %bx\n\t");
 
 
 #endif

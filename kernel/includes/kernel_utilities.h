@@ -8,6 +8,8 @@ extern unsigned short *memsetw(unsigned short *dest, unsigned short val, int cou
 
 extern size_t strlen(const char *str);
 
+extern size_t strnlen(const char *str, size_t maxlen);
+
 extern unsigned char inportb (unsigned short _port);
 extern void outportb (unsigned short _port, unsigned char _data);
 

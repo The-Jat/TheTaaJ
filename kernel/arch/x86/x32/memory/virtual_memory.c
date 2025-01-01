@@ -37,6 +37,17 @@ extern void memory_reload_cr3(void);
 extern void memory_invalidate_addr(uintptr_t pda);
 extern uint32_t memory_get_cr3(void);
 
+
+// TODO: Move it out from here.
+/* CpuGetCurrentId 
+ * Retrieves the current cpu id for caller */
+UUId_t
+CpuGetCurrentId(void)
+{
+	// Get apic id
+	return 0;
+}
+
 /* MmVirtualCreatePageTable
  * Creates and initializes a new empty page-table */
 PageTable_t*
@@ -167,97 +178,97 @@ MmVirtualInstallPaging(
  * Installs a new page-mapping in the given
  * page-directory. The type of mapping is controlled by
  * the Flags parameter. */
-// OsStatus_t
-// MmVirtualMap(
-// 	 void *PageDirectory, 
-// 	 PhysicalAddress_t pAddress, 
-// 	 VirtualAddress_t vAddress, 
-// 	 Flags_t Flags)
-// {
-// 	// Variabes
-// 	OsStatus_t Result = Success;
-// 	PageDirectory_t *Directory = (PageDirectory_t*)PageDirectory;
-// 	PageTable_t *Table = NULL;
-// 	int IsCurrent = 0;
+ OsStatus_t
+ MmVirtualMap(
+	 void *PageDirectory, 
+	 PhysicalAddress_t pAddress, 
+	 VirtualAddress_t vAddress, 
+	 Flags_t Flags)
+{
+	// Variabes
+	OsStatus_t Result = Success;
+	PageDirectory_t *Directory = (PageDirectory_t*)PageDirectory;
+	PageTable_t *Table = NULL;
+	int IsCurrent = 0;
 
-// 	// Determine page directory 
-// 	// If we were given null, select the cuyrrent
-// 	if (Directory == NULL) {
-// 		Directory = g_PageDirectories[CpuGetCurrentId()];
-// 	}
+	// Determine page directory 
+	// If we were given null, select the cuyrrent
+	if (Directory == NULL) {
+		Directory = g_PageDirectories[CpuGetCurrentId()];
+	}
 
-// 	// Sanitizie if we are modifying the currently
-// 	// loaded page-directory
-// 	if (g_PageDirectories[CpuGetCurrentId()] == Directory) {
-// 		IsCurrent = 1;
-// 	}
+	// Sanitizie if we are modifying the currently
+	// loaded page-directory
+	if (g_PageDirectories[CpuGetCurrentId()] == Directory) {
+		IsCurrent = 1;
+	}
 
-// 	// Sanitize again
-// 	// If its still null something is wrong
-// //	assert(Directory != NULL);
+	// Sanitize again
+	// If its still null something is wrong
+//	assert(Directory != NULL);
 
-// 	// Get lock on the page-directory 
-// 	// we don't want people to touch 
-// 	// MutexLock(&Directory->Lock);
+	// Get lock on the page-directory 
+	// we don't want people to touch 
+	// MutexLock(&Directory->Lock);
 
-// 	// Does page table exist? 
-// 	// If the page-table is not even mapped in we need to 
-// 	// do that beforehand
-// 	if (!(Directory->pTables[PAGE_DIRECTORY_INDEX(vAddress)] & PAGE_PRESENT)) {
-// 		uintptr_t Physical = 0;
-// 		Table = (PageTable_t*)kmalloc_ap(PAGE_SIZE, &Physical);
+	// Does page table exist? 
+	// If the page-table is not even mapped in we need to 
+	// do that beforehand
+	if (!(Directory->pTables[PAGE_DIRECTORY_INDEX(vAddress)] & PAGE_PRESENT)) {
+		uintptr_t Physical = 0;
+		Table = (PageTable_t*)kmalloc_ap(PAGE_SIZE, &Physical);
 
-// 		// Sanitize the newly allocated table
-// 		// and then initialize the table
-// //		assert(Table != NULL);
-// 		memset((void*)Table, 0, sizeof(PageTable_t));
+		// Sanitize the newly allocated table
+		// and then initialize the table
+//		assert(Table != NULL);
+		memset((void*)Table, 0, sizeof(PageTable_t));
 
-// 		// Install it into our directory, now if the address
-// 		// we are mapping is user-accessible, we should add flags
-// 		Directory->pTables[PAGE_DIRECTORY_INDEX(vAddress)] =
-// 			Physical | PAGE_PRESENT | PAGE_WRITE | Flags;
-// 		Directory->vTables[PAGE_DIRECTORY_INDEX(vAddress)] =
-// 			(uintptr_t)Table;
+		// Install it into our directory, now if the address
+		// we are mapping is user-accessible, we should add flags
+		Directory->pTables[PAGE_DIRECTORY_INDEX(vAddress)] =
+			Physical | PAGE_PRESENT | PAGE_WRITE | Flags;
+		Directory->vTables[PAGE_DIRECTORY_INDEX(vAddress)] =
+			(uintptr_t)Table;
 
-// 		// Reload CR3 directory to force 
-// 		// the MMIO to see our changes 
-// 		if (IsCurrent) {
-// 			memory_reload_cr3();
-// 		}
-// 	}
-// 	else {
-// 		Table = (PageTable_t*)Directory->vTables[PAGE_DIRECTORY_INDEX(vAddress)];
-// 	}
+		// Reload CR3 directory to force 
+		// the MMIO to see our changes 
+		if (IsCurrent) {
+			memory_reload_cr3();
+		}
+	}
+	else {
+		Table = (PageTable_t*)Directory->vTables[PAGE_DIRECTORY_INDEX(vAddress)];
+	}
 
-// 	// Sanitize the table before we use it 
-// 	// otherwise we might fuck up
-// //	assert(Table != NULL);
+	// Sanitize the table before we use it 
+	// otherwise we might fuck up
+//	assert(Table != NULL);
 
-// 	// Sanitize that the index isn't already
-// 	// mapped in, thats a fatality
-// 	if (Table->Pages[PAGE_TABLE_INDEX(vAddress)] != 0) {
-// //		FATAL(FATAL_SCOPE_KERNEL, 
-// //			"Trying to remap virtual 0x%x to physical 0x%x (original mapping 0x%x)",
-// //			vAddress, pAddress, Table->Pages[PAGE_TABLE_INDEX(vAddress)]);
-// 	}
+	// Sanitize that the index isn't already
+	// mapped in, thats a fatality
+	if (Table->Pages[PAGE_TABLE_INDEX(vAddress)] != 0) {
+//		FATAL(FATAL_SCOPE_KERNEL, 
+//			"Trying to remap virtual 0x%x to physical 0x%x (original mapping 0x%x)",
+//			vAddress, pAddress, Table->Pages[PAGE_TABLE_INDEX(vAddress)]);
+	}
 
-// 	// Map it, make sure we mask the page address
-// 	// so we don't accidently set any flags
-// 	Table->Pages[PAGE_TABLE_INDEX(vAddress)] =
-// 		(pAddress & PAGE_MASK) | PAGE_PRESENT | PAGE_WRITE | Flags;
+	// Map it, make sure we mask the page address
+	// so we don't accidently set any flags
+	Table->Pages[PAGE_TABLE_INDEX(vAddress)] =
+		(pAddress & PAGE_MASK) | PAGE_PRESENT | PAGE_WRITE | Flags;
 
-// 	// Unlock
-// //	MutexUnlock(&Directory->Lock);
+	// Unlock
+//	MutexUnlock(&Directory->Lock);
 
-// 	// Last step is to invalidate the 
-// 	// the address in the MMIO
-// 	if (IsCurrent) {
-// 		memory_invalidate_addr(vAddress);
-// 	}
+	// Last step is to invalidate the 
+	// the address in the MMIO
+	if (IsCurrent) {
+		memory_invalidate_addr(vAddress);
+	}
 
-// 	// Done - no errors
-// 	return Result;
-// }
+	// Done - no errors
+	return Result;
+}
 
 /* MmVirtualUnmap
  * Unmaps a previous mapping from the given page-directory
@@ -347,60 +358,60 @@ MmVirtualInstallPaging(
  * Retrieves the physical address mapping of the
  * virtual memory address given - from the page directory 
  * that is given */
-// PhysicalAddress_t
-// MmVirtualGetMapping(
-// 	 void *PageDirectory, 
-// 	 VirtualAddress_t Address)
-// {
-// 	// Initiate our variables
-// 	PageDirectory_t *Directory = (PageDirectory_t*)PageDirectory;
-// 	PageTable_t *Table = NULL;
-// 	PhysicalAddress_t Mapping = 0;
+PhysicalAddress_t
+MmVirtualGetMapping(
+	 void *PageDirectory, 
+	 VirtualAddress_t Address)
+{
+	// Initiate our variables
+	PageDirectory_t *Directory = (PageDirectory_t*)PageDirectory;
+	PageTable_t *Table = NULL;
+	PhysicalAddress_t Mapping = 0;
 
-// 	// If none was given - use the current
-// 	if (Directory == NULL) {
-// 		Directory = g_PageDirectories[CpuGetCurrentId()];
-// 	}
+	// If none was given - use the current
+	if (Directory == NULL) {
+		Directory = g_PageDirectories[CpuGetCurrentId()];
+	}
 
-// 	// Sanitize the page-directory
-// 	// If it's still NULL somethings wrong
-// //	assert(Directory != NULL);
+	// Sanitize the page-directory
+	// If it's still NULL somethings wrong
+//	assert(Directory != NULL);
 
-// 	// Acquire lock for this directory
-// 	// MutexLock(&Directory->Lock);
+	// Acquire lock for this directory
+	// MutexLock(&Directory->Lock);
 
-// 	// Is the table even present in the directory? 
-// 	// If not, then no mapping 
-// 	if (!(Directory->pTables[PAGE_DIRECTORY_INDEX(Address)] & PAGE_PRESENT)) {
-// 		goto NotMapped;
-// 	}
+	// Is the table even present in the directory? 
+	// If not, then no mapping 
+	if (!(Directory->pTables[PAGE_DIRECTORY_INDEX(Address)] & PAGE_PRESENT)) {
+		goto NotMapped;
+	}
 
-// 	// Fetch the page table from the page-directory
-// 	Table = (PageTable_t*)Directory->vTables[PAGE_DIRECTORY_INDEX(Address)];
+	// Fetch the page table from the page-directory
+	Table = (PageTable_t*)Directory->vTables[PAGE_DIRECTORY_INDEX(Address)];
 
-// 	/* Sanitize the page-table just in case */
-// //	assert(Table != NULL);
+	/* Sanitize the page-table just in case */
+//	assert(Table != NULL);
 
-// 	// Sanitize the mapping before anything
-// 	if (!(Table->Pages[PAGE_TABLE_INDEX(Address)] & PAGE_PRESENT)) {
-// 		goto NotMapped;
-// 	}
+	// Sanitize the mapping before anything
+	if (!(Table->Pages[PAGE_TABLE_INDEX(Address)] & PAGE_PRESENT)) {
+		goto NotMapped;
+	}
 
-// 	// Retrieve mapping
-// 	Mapping = Table->Pages[PAGE_TABLE_INDEX(Address)] & PAGE_MASK;
+	// Retrieve mapping
+	Mapping = Table->Pages[PAGE_TABLE_INDEX(Address)] & PAGE_MASK;
 
-// 	// Release mutex on page-directory
-// 	// we should not keep it longer than neccessary
-// //	MutexUnlock(&Directory->Lock);
+	// Release mutex on page-directory
+	// we should not keep it longer than neccessary
+//	MutexUnlock(&Directory->Lock);
 
-// 	// Done - Return with offset
-// 	return (Mapping + (Address & ATTRIBUTE_MASK));
+	// Done - Return with offset
+	return (Mapping + (Address & ATTRIBUTE_MASK));
 
-// NotMapped:
-// 	// On fail - release and return 0
-// //	MutexUnlock(&Directory->Lock);
-// 	return 0;
-// }
+NotMapped:
+	// On fail - release and return 0
+//	MutexUnlock(&Directory->Lock);
+	return 0;
+}
 
 /* MmVirtualInitialMap
  * Maps a virtual memory address to a physical

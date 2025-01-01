@@ -60,6 +60,10 @@ extern void outl(uint16_t port, uint32_t data);
 	#define PAGE_MASK 0xFFFFF000
 #endif
 
+#ifndef ATTRIBUTE_MASK
+	#define ATTRIBUTE_MASK 0x00000FFF
+#endif
+
 
 #define INTERRUPT_SYSCALL				0x80
 

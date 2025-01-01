@@ -12,6 +12,8 @@
 #include <arch/x86/pic.h>
 // Physical Memory
 #include <arch/x86/memory.h>
+// Heap
+#include <heap.h>
 
 BootInfo_t x86BootInfo;
 
@@ -90,11 +92,15 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 
 	// Initialize Virtual Memory
 	MmVirtualInit();
-	// Log("k_main Kernel Infinite Loop");
+
+	// Initializing the Heap Memory
+	HeapInit();
+	// heap_test();
 
 	// Initialize the system.
 	// Initialize(&x86BootInfo);
 
+	Log("k_main Kernel Infinite Loop");
 // Infinite loop
 	while(1){}
 

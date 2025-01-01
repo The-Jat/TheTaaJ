@@ -98,10 +98,26 @@ OsStatus_t MmPhyiscalInit(void *BootInfo, OsBootDescriptor *Descriptor);
 PhysicalAddress_t MmPhysicalAllocateBlock(uintptr_t Mask, int Count);
 
 
+/* MmVirtualMap
+ * Installs a new page-mapping in the given
+ * page-directory. The type of mapping is controlled by
+ * the Flags parameter. */
+OsStatus_t MmVirtualMap(void *PageDirectory, PhysicalAddress_t pAddress, VirtualAddress_t vAddress, Flags_t Flags);
+
 /* MmVirtualInit
  * Initializes the virtual memory system and
  * installs default kernel mappings
  */
 OsStatus_t MmVirtualInit(void);
+
+
+/* MmVirtualGetMapping
+ * Retrieves the physical address mapping of the
+ * virtual memory address given - from the page directory 
+ * that is given */
+PhysicalAddress_t MmVirtualGetMapping(
+	void *PageDirectory, 
+	VirtualAddress_t Address);
+
 
 #endif /* __MEMORY_H__ */

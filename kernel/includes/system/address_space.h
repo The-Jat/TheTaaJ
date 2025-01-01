@@ -39,4 +39,11 @@ typedef struct AddressSpace {
  * temporary structure */
 OsStatus_t AddressSpaceInitKernel(AddressSpace_t *Kernel);
 
+/* AddressSpaceGetMap
+ * Retrieves a physical mapping from an address space determined
+ * by the virtual address given */
+PhysicalAddress_t AddressSpaceGetMap(
+	AddressSpace_t *AddressSpace, 
+	VirtualAddress_t Address);
+
 #endif
