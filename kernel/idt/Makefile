@@ -27,7 +27,7 @@ all: $(BUILD_DIR) $(OBJECTS)
 # Compile C sources
 $(BUILD_DIR)/%.o: $(IDT_DIR)/%.c
 	@echo "Compiling $<..."
-	$(CC) -I $(KERNEL_INCLUDE) -c $< -o $@ $(CFLAGS) -O2 -Wall -Wextra
+	$(CC) -I $(KERNEL_INCLUDE) -I $(LIBC_INCLUDE) -c $< -o $@ $(CFLAGS) -O2 -Wall -Wextra
 
 # Assemble ASM sources
 $(BUILD_DIR)/%.o: $(IDT_DIR)/%.asm

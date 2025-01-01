@@ -19,14 +19,15 @@ unsigned char *memcpy(unsigned char *dest, const unsigned char *src, int count) 
  * memset
  * Set `count` bytes to `val`.
  */
-unsigned char *memset(unsigned char *dest, unsigned char val, int count) {
+/*unsigned char *memset(unsigned char *dest, unsigned char val, int count) {
 	int i;
 	i = 0;
 	for ( ; i < count; ++i ) {
 		dest[i] = val;
 	}
 	return dest;
-}
+}*/
+
 
 /*
  * memsetw
@@ -45,12 +46,29 @@ unsigned short *memsetw(unsigned short *dest, unsigned short val, int count) {
  * strlen
  * Returns the length of a given `str`.
  */
-int strlen(const char *str) {
+/*int strlen(const char *str) {
 	int i = 0;
 	while (str[i] != (char)0) {
 		++i;
 	}
 	return i;
+}*/
+
+size_t strlen(const char* str) {
+	size_t length = 0;
+	while(str[length] != '\0') {
+		length++;
+	}
+	return length;
+}
+
+
+size_t strnlen(const char* str, size_t maxlen) {
+	size_t length = 0;
+	while(length < maxlen && str[length] != '\0') {
+		length++;
+	}
+	return length;
 }
 
 /*

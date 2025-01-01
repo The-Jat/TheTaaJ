@@ -1,4 +1,4 @@
-#include <vga.h>
+#include <vga_print.h>
 
 /*
  * Text pointer, background, foreground

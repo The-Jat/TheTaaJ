@@ -7,6 +7,10 @@
 #define KERNEL_ELF_READ 0x300000
 #define KERNEL_DEST_START 0x1000000
 
+// This global variable stores the address where kernel is loaded
+// It is used in stage2.asm file as extern
+unsigned int g_kernelAddress;
+
 int load_elf32()
 {
 	boot_print("[load_elf32], Loading an ELF32 file.\n");
@@ -38,6 +42,9 @@ int load_elf32()
 			unsigned char *src = (unsigned char *)KERNEL_ELF_READ + phdr->p_offset;
 			// unsigned char *dst = (unsigned char *)KERNEL_DEST_START + phdr->p_vaddr;
 			unsigned char *dst = (unsigned char *)phdr->p_vaddr;
+
+			// store the kernel elf destination address
+			g_kernelAddress = phdr->p_vaddr;
 
 			// Copy the segment to the virtual address
 			memcpyb(dst, src, phdr->p_filesz);

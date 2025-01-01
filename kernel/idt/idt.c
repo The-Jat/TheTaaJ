@@ -1,5 +1,6 @@
 #include <idt.h>
 #include <kernel_utilities.h>
+#include <string.h>
 
 /*
  * IDT Entry

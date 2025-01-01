@@ -87,7 +87,7 @@ stage2_entry:
 	;; The value will be received in reverse order,
 	;; such that the value pushed lastly in stage 1 will be the one
 	;; which will be popped first from the stack
-	;;	|	| Top (Low Memory Area)
+	;;	|       | Top (Low Memory Area)
 	;;	|  108	|
 	;;	|-------|
 	;;	|  107	| Bottom (High Memory Area)
@@ -146,7 +146,7 @@ stage2_entry:
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Get Best Video Mode and its information
-	call VesaSetup
+	 call VesaSetup
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -154,6 +154,13 @@ stage2_entry:
 	;; Get key input by polling (continuous loop) the hardware
 ;	call GetKeyInputWithoutBIOS
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;; Wait for the boot key to be pressed, which is space key
+;	call check_for_boot_keys
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Load Flat Kernel of Size 1 KB at location 0xB000
@@ -224,6 +231,16 @@ extern detect_ata_devices
 extern find_and_load_kernel_from_9660_using_atapi
 extern jump_to_kernel
 
+;; global variable declared in ata.c and has the kernel size
+extern g_kernelSize
+;; global variable declared in elf.c and has the elf kernel load address
+extern g_kernelAddress
+
+;; Defined in boot_menu.c file
+extern DrawBootMenu
+
+extern create_menu
+
 ;; Includes
 %include "ata.inc"	; For ATA interface
 %include "print32.inc"	; For Printing in 32 bit assembly
@@ -245,6 +262,13 @@ Temp32Bit:
 
 	;; Clear the screen
 	call ClearScreen32
+
+	; TODO call only on specified key press
+	;; Draw the Boot BootMenu
+;; uncomment below 2 lines of code to show the boot menu
+;	call create_menu
+;	call DrawBootMenu
+;jmp $	; Temp Infinite Loop
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Print welcome sentence for protected mode
@@ -286,6 +310,12 @@ Temp32Bit:
 	cmp eax, 1		; success kernel was found and loaded.
 	jne ErrorLoadingKernel		; Display error string in case of kernel loading failure.
 
+	;; Get the kernle size from the g_kernelSize variable declared and assigned value in ata.c
+	;; After retrieving the kernel size store it in the OsBootDescriptor Structure, which is to be
+	;; passed to kernel.
+	mov dword eax, [g_kernelSize]
+	mov dword [BootDescriptor + OsBootDescriptor.KernelSize], eax
+
 	;; At this point, kernel was loaded successfully.
 	; Jump if it binary kernel, otherwise read and extract and if it is elf one.
 	; jmp 0x300000		; assembly way, for jumping to the binary kernel
@@ -298,15 +328,48 @@ Temp32Bit:
 					; if 1 - success
 	jne elf_reading_loading_error
 
+	;; loading successful
+
+	;; Get the kernle load address from the g_kernelAddress variable declared and assigned value in elf.c
+	;; After retrieving the kernel load address store it in the OsBootDescriptor Structure, which is to be
+	;; passed to kernel.
+	mov dword  eax, [g_kernelAddress]
+	mov dword [BootDescriptor + OsBootDescriptor.KernelAddr], eax
+
+	;; Jump to protected real mode and do vesa things.
+	; Load 16-bit protected mode descriptor
+	mov 	eax, DATA16_DESC
+	mov 	ds, eax
+	mov 	es, eax
+	mov 	fs, eax
+	mov 	gs, eax
+	mov 	ss, eax
+
+	; Jump to protected real mode, set CS!
+	jmp	CODE16_DESC:PrepareToJumpToReal
+
+BITS 16
+PrepareToJumpToReal:
+	; Load 16 bit IDT
+	;call LoadIdt16
+	lidt [Idt16]
+	; Disable Protected Mode
+	mov eax, cr0
+	and eax, 0xFFFFFFFE
+	mov cr0, eax
+
+	; Far jump to real mode unprotected
+	jmp 0:Temp16Bit
+
 	;; Setup Register to pass the data structure to the kernel
-	xor esi, esi
-	xor edi, edi
-	mov eax, MULTIBOOT_MAGIC
-	mov ebx, BootHeader
-	mov edx, BootDescriptor
+;	xor esi, esi
+;	xor edi, edi
+;	mov eax, MULTIBOOT_MAGIC
+;	mov ebx, BootHeader
+;	mov edx, BootDescriptor
 
 
-	jmp 0x1000000	; Jump to the location, where kernel elf sections are loaded.
+;	jmp 0x1000000	; Jump to the location, where kernel elf sections are loaded.
 
 ;; We should not be here.
 	mov esi, 0xb8000
@@ -370,6 +433,47 @@ ErrorLoadingKernel:
 	call PrintString32
 jmp $
 
+
+; *******************************
+BITS 16
+Temp16Bit:
+	; Clear registers
+	xor 	eax, eax
+	xor 	ebx, ebx
+	xor 	ecx, ecx
+	xor	edx, edx
+	xor 	esi, esi
+	xor 	edi, edi
+
+	; Setup segments, leave 16 bit protected mode
+	mov		ds, ax
+	mov		es, ax
+	mov		fs, ax
+	mov		gs, ax
+
+	; Setup stack
+	mov		ss, ax
+	mov		ax, 0x7BFF
+	mov		sp, ax
+	xor 	ax, ax
+
+	; Enable interrupts
+	sti
+
+	; Switch Video Mode
+	 call 	VesaFinish
+
+	; Goto Permanent Protected Mode!
+	mov		eax, cr0
+	or		eax, 1
+	mov		cr0, eax
+
+	; Jump into 32 bit
+	jmp 	CODE_DESC:ProtectedMode
+
+jmp $
+
+
 ; *******************************
 ;; Permanent Protected Mode
 
@@ -380,7 +484,7 @@ BITS 32
 ProtectedMode:
 	; Update segment registers
 	xor eax, eax
-	mov ax, 0x10            ; Data segment selector 0x10
+	mov ax, DATA_DESC            ; Data segment selector 0x10
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
@@ -410,24 +514,32 @@ ProtectedMode:
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; clear the screen
-	call ClearScreen32
+;	call ClearScreen32
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
+
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Print welcome sentence for protected mode
-	mov esi, sProtectedModeWelcomeSentence
-	mov bl, LMAGENTA	; Foreground = Light Magenta
-	mov bh, BLACK		; Background = Black
-	call PrintString32
+;	mov esi, sProtectedModeWelcomeSentence
+;	mov bl, LMAGENTA	; Foreground = Light Magenta
+;	mov bh, BLACK		; Background = Black
+;	call PrintString32
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; jmp to the kernel
-		jmp MEMLOCATION_KERNEL_LOAD_OFFSET
+	; jmp MEMLOCATION_KERNEL_LOAD_OFFSET
+	xor esi, esi
+	xor edi, edi
+	mov eax, MULTIBOOT_MAGIC
+	mov ebx, BootHeader
+	mov edx, BootDescriptor
+
+	;; Kernel is relocated at 0x100000
+	jmp 0x100000
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

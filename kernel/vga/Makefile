@@ -11,7 +11,7 @@ BUILD_DIR = $(ROOT_DIR)/build
 VGA_DIR = .
 
 # Define source files
-C_SOURCES = vga.c
+C_SOURCES = vga_print.c
 
 # Define object files
 C_OBJECTS = $(C_SOURCES:%.c=$(BUILD_DIR)/%.o)

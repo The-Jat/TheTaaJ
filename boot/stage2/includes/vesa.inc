@@ -336,12 +336,12 @@ istruc VbeModeStruct
 	at VbeModeStruct.CharCellWidth, 	db 	0
 	at VbeModeStruct.CharCellHeight, 	db 	0
 	at VbeModeStruct.NumPlanes, 		db 	0
-	at VbeModeStruct.Bpp, 				db 	0
-	at VbeModeStruct.NumBanks, 			db 	0
+	at VbeModeStruct.Bpp, 			    db 	0
+	at VbeModeStruct.NumBanks, 		    db 	0
 	at VbeModeStruct.MemoryModel,		db 	0
 	at VbeModeStruct.BankSizeKb, 		db 	0
 	at VbeModeStruct.MaxImagePages, 	db 	0
-	at VbeModeStruct.Reserved, 			db 	0
+	at VbeModeStruct.Reserved, 		    db 	0
 	at VbeModeStruct.RedMaskSize, 		db 	0
 	at VbeModeStruct.RedFieldPos, 		db 	0
 	at VbeModeStruct.GreenMaskSize, 	db 	0
@@ -356,5 +356,23 @@ istruc VbeModeStruct
 	at VbeModeStruct.Reserved2, 		dw 	0
 	at VbeModeStruct.ReservedSpace, 	times 	213 db 0
 iend
+
+modes_list:
+	times 256 dw 0  ; Space to store up to 256 mode numbers
+;VesaModeCount:
+;	dw 0		; Keep track of the number of modes
+
+struc VesaModeEntry
+	.ModeID			resw 1
+	.HorizontalResolution	resw 1
+	.VerticalResolution	resw 1
+endstruc
+
+%define MAX_VESA_MODES 256
+%define VesaModeEntry_size 6
+
+VesaModeBuffer resb VesaModeEntry_size * 256
+VesaModeCount resw 1
+
 
 %endif

@@ -131,14 +131,14 @@ LoadMemoryMap:
 
 	; Restore EDX for safety (EAX contains signature on success)
 	mov 	edx, BIOS_MEMMAP_SIGNATURE
-	cmp 	eax, edx		; Compare the signature
-	jne 	.NoMemoryMap		; if mismatch unsuccessful
+	cmp 	eax, edx        ; Compare the signature
+	jne 	.NoMemoryMap    ; if mismatch unsuccessful
 
 	; If ebx is 0, only 1 entry, we cant use that for anything
-	test 	ebx, ebx	; Performs bitwise AND operation between EBX
-				; and then set the processor's flag based on the result.
-				; This is common idiom in assembly language to check
-				; is a register is zero or not.
+	test 	ebx, ebx    ; Performs bitwise AND operation between EBX
+                        ; and then set the processor's flag based on the result.
+						; This is common idiom in assembly language to check
+						; is a register is zero or not.
 	je 	.NoMemoryMap	; if zero, means no memory map
 	
 	; Proceed if memory map is valid
@@ -263,7 +263,7 @@ SetupMemory:
 		hlt
 	.NoError:
 		; Add lower 1 mb and save
-		;add 	eax, 0x400
+		add 	eax, 0x400
 		mov 	dword [BootHeader + MultiBoot.MemoryLo], eax
 		mov 	dword [BootHeader + MultiBoot.MemoryHi], ebx
 		

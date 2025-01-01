@@ -1,5 +1,5 @@
-#ifndef __DATA_STRUCTURE_H__
-#define __DATA_STRCUTURE_H__
+#ifndef __BOOT_DATA_STRUCTURE_H__
+#define __BOOT_DATA_STRUCTURE_H__
 
 #include <stdint.h>
 
@@ -83,4 +83,12 @@ typedef struct BootDescriptor
 
 } __attribute__((packed)) OsBootDescriptor;
 
-#endif
+
+typedef struct CoreBootInfo {
+	char			*BootLoaderName;
+	OsBootDescriptor	Descriptor;
+	void			*ArchBootInfo;
+} __attribute__((packed)) BootInfo_t;
+
+
+#endif /* __BOOT_DATA_STRUCTURE_H__*/

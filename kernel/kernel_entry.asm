@@ -43,15 +43,15 @@ start:
 	
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Clear the Screen
-	call ClearScreen32
+;	call ClearScreen32
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	;; Print Welcome Message
-	mov esi, sKernelWelcomeStatement
-	mov bl, YELLOW		; Foreground color = Yellow
-	mov bh, BLACK		; Background color = Black
-	call PrintString32
+;	mov esi, sKernelWelcomeStatement
+;	mov bl, YELLOW		; Foreground color = Yellow
+;	mov bh, BLACK		; Background color = Black
+;	call PrintString32
 	;;
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
