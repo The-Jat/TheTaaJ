@@ -23,6 +23,9 @@
 #define MEMORY_LOCATION_STACK_END		(MEMORY_SEGMENT_STACK_BASE - MEMORY_SEGMENT_STACK_LIMIT)
 
 
+/* Interrupt stuff */
+#define NUM_ISA_INTERRUPTS			16
+
 /* Port IO */
 extern uint8_t inb(uint16_t port);
 extern uint16_t inw(uint16_t port);

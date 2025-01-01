@@ -1,6 +1,31 @@
 #include <arch/x86/x32/context.h>
 #include <log/log.h>
 
+#include <interrupts.h>
+#include <arch/x86/x32/idt.h>
+#include <arch/x86/x32/arch_x32.h>
+
+/* Interrupts tables needed for
+ * the x86-architecture */
+InterruptDescriptor_t *InterruptTable[IDT_DESCRIPTORS];
+int InterruptISATable[NUM_ISA_INTERRUPTS];
+int g_InterruptInitialized = 0;
+UUId_t InterruptIdGen = 0;
+
+/* InterruptInitialize
+ * Initializes the interrupt-manager code
+ * and initializes all the resources for
+ * allocating and freeing interrupts */
+void InterruptInitialize(void)
+{
+	LogInformation("Interrupts", "Initializing");
+
+	/* Null out interrupt tables */
+	memset((void*)InterruptTable, 0, sizeof(InterruptDescriptor_t*) * IDT_DESCRIPTORS);
+	memset((void*)&InterruptISATable, 0, sizeof(InterruptISATable));
+	g_InterruptInitialized = 1;
+	InterruptIdGen = 0;
+}
 
 /* InterruptEntry
  * The common entry point for interrupts, all

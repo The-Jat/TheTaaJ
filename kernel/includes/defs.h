@@ -40,6 +40,11 @@ typedef enum {
 	Error
 } OsStatus_t;
 
+typedef enum {
+    InterruptHandled,
+    InterruptNotHandled
+} InterruptStatus_t;
+
 #define DIVUP(a, b)                             ((a / b) + (((a % b) > 0) ? 1 : 0))
 
 #ifndef LOBYTE

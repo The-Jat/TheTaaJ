@@ -13,3 +13,4 @@ LDFLAGS = -m elf_i386
 KERNEL_INCLUDE = $(ROOT_DIR)/includes
 BOOT_STAGE2_INCLUDE = $(ROOT_DIR)/../boot/stage2/includes
 LIBC_INCLUDE = $(ROOT_DIR)/includes/libc
+INTERFACE_INCLUDE = $(ROOT_DIR)/../lib/include

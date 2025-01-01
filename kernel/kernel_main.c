@@ -97,6 +97,9 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	HeapInit();
 	// heap_test();
 
+	// Initializing interrupts
+	InterruptInitialize();
+
 	// Initialize the system.
 	// Initialize(&x86BootInfo);
 
