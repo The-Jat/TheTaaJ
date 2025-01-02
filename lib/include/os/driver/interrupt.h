@@ -14,6 +14,13 @@
 #define INTERRUPT_NONE					(int)-1
 #define INTERRUPT_MAXVECTORS			8
 
+/* Interrupt allocation flags, interrupts are initially
+ * always shareable */
+#define INTERRUPT_NOTSHARABLE			0x00000001
+#define INTERRUPT_FAST				0x00000002
+#define INTERRUPT_MSI				0x00000004
+#define INTERRUPT_VECTOR			0x00000008
+
 /* The interrupt descriptor structure, this contains
  * information about the interrupt that needs to be registered
  * and special handling. */

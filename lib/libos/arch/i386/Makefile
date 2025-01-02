@@ -1,4 +1,4 @@
-# heap/Makefile
+# libos/arch/i386/Makefile
 
 # Ensure ROOT_DIR is set, defaulting to one level up if not provided
 ROOT_DIR ?= $(abspath ..)
@@ -8,21 +8,29 @@ include $(ROOT_DIR)/config.mk
 
 # Define directories
 BUILD_DIR = $(ROOT_DIR)/build
-LOG_DIR = .
+MEMORY_DIR = .
 
 # Define source files
-C_SOURCES = heap.c timers.c
+ASM_SOURCES = _spinlock.asm
+C_SOURCES =
 
 # Define object files
+ASM_OBJECTS = $(ASM_SOURCES:%.asm=$(BUILD_DIR)/%.o)
 C_OBJECTS = $(C_SOURCES:%.c=$(BUILD_DIR)/%.o)
+OBJECTS = $(C_OBJECTS) $(ASM_OBJECTS)
 
 # Build all
-all: $(BUILD_DIR) $(C_OBJECTS)
+all: $(BUILD_DIR) $(OBJECTS)
 
 # Compile C sources
-$(BUILD_DIR)/%.o: $(LOG_DIR)/%.c
+$(BUILD_DIR)/%.o: $(MEMORY_DIR)/%.c
 	@echo "Compiling $<..."
-	$(CC) -I $(KERNEL_INCLUDE) -I $(LIBC_INCLUDE) -I $(INTERFACE_INCLUDE) -I $(USERSPACE_INCLUDE) -c $< -o $@ $(CFLAGS) -O2 -Wall -Wextra
+	$(CC) -I $(KERNEL_INCLUDE) -I $(USERSPACE_INCLUDE) -c $< -o $@ $(CFLAGS) -O2 -Wall -Wextra
+
+# Assemble ASM sources
+$(BUILD_DIR)/%.o: $(MEMORY_DIR)/%.asm
+	@echo "Assembling $<..."
+	$(AS) -f elf $< -o $@
 
 # Create build directory if not exists
 $(BUILD_DIR):
@@ -30,7 +38,7 @@ $(BUILD_DIR):
 
 # Clean build directory
 clean:
-	rm -f $(C_OBJECTS)
+	rm -f $(OBJECTS)
 
 # Phony targets
 .PHONY: all clean

@@ -10,6 +10,20 @@
 #endif
 
 
+#ifndef _SSIZE_T_DEFINED
+#define _SSIZE_T_DEFINED
+#undef ssize_t
+#if defined(_WIN64) || defined(__x86_64__)
+	#if defined(__GNUC__) && defined(__STRICT_ANSI__)
+		typedef signed int ssize_t __attribute__((mode(DI)));
+	#else
+		typedef signed long long ssize_t;
+	#endif
+#else
+		typedef signed int ssize_t;
+#endif
+#endif
+
  /*
  * For C++: NULL might be defined as 0 because C++ supports 0 as a null pointer constant.
  * For C: NULL is typically defined as '(void*)0' to ensure that it is treated as a

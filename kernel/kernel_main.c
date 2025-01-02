@@ -99,6 +99,7 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 
 	// Initializing interrupts
 	InterruptInitialize();
+	TimersInitialize();
 
 	// Initialize the system.
 	// Initialize(&x86BootInfo);

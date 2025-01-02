@@ -27,6 +27,28 @@ void InterruptInitialize(void)
 	InterruptIdGen = 0;
 }
 
+/* InterruptGet
+ * Retrieves the given interrupt source information
+ * as a MCoreInterruptDescriptor_t */
+InterruptDescriptor_t *InterruptGet(UUId_t Source)
+{
+	// Variables
+	InterruptDescriptor_t *Iterator = NULL;
+	uint16_t TableIndex = LOWORD(Source);
+
+	// Iterate at the correct entry
+	Iterator = InterruptTable[TableIndex];
+	while (Iterator != NULL) {
+		if (Iterator->Id == Source) {
+			return Iterator;
+		}
+	}
+
+	// We didn't find it
+	return NULL;
+}
+
+
 /* InterruptEntry
  * The common entry point for interrupts, all
  * non-exceptions will enter here, lookup a handler

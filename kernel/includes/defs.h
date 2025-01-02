@@ -68,4 +68,13 @@ typedef enum {
 #define BOCHSBREAK                              __asm__ __volatile__ ("xchg %bx, %bx\n\t");
 
 
+/* Time definitions that can help with 
+ * conversion of the different time-units */
+#define FSEC_PER_NSEC                           1000000L
+#define NSEC_PER_MSEC                           1000L
+#define MSEC_PER_SEC                            1000L
+#define NSEC_PER_SEC                            1000000000L
+#define FSEC_PER_SEC                            1000000000000000LL
+
+
 #endif

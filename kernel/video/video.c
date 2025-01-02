@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <stdlib.h>
+#include <libc/stdlib.h>
 #include <kernel_utilities.h>
 #include <defs.h>
 #include <video/video.h>
