@@ -17,6 +17,11 @@
 //#include <string.h>
 //#include <stdio.h>
 
+// A heap is a region of memory that is used for dynamic memory allocation.
+// It is an area where programs can allocate memory at runtime and free it
+// when no longer needed, unlike the stack, which is used for local variables
+// and function calls.
+
 /* These are internal allocation flags
  * and get applied based on size for optimization */
 #define ALLOCATION_PAGEALIGN		0x10000000
