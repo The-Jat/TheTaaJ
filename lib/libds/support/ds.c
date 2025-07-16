@@ -1,5 +1,5 @@
 /*
- * MollenOS - Generic Data Structures (Shared)
+ * Generic Data Structures (Shared)
  */
 #include <defs.h>
 /* Includes 
