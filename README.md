@@ -21,6 +21,8 @@ You need the following utilities:
 You can install NASM and QEMU using the package manager for your operating system. For example, on Ubuntu, you can use `apt`:
 
 ```sh
+sudo apt-get install build-essential
+sudo apt-get install git
 sudo apt-get install nasm
 sudo apt-get install qemu
 ```
