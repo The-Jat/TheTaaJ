@@ -138,9 +138,8 @@ void VideoDrawBootTerminal(unsigned X, unsigned Y, size_t Width, size_t Height) 
 	int length = strlen(TitlePtr);
 
 	// Title location.
-	//unsigned TitleStartX = 0;
 	unsigned TitleStartX = (GetBootTerminal()->CursorLimitX / 2) - (length/2)*8;
-	//unsigned TitleStartY = 1;
+
 	unsigned TitleStartY = (s_bootTerminal.Type == VIDEO_GRAPHICS) ? Y + 18: Y + 1;
 	int i;
 
