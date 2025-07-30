@@ -3,7 +3,6 @@
 
 ## Building Guide
 
-
 Follow these steps to build TheTaaJ from source:
 
 1. **Clone the Repository**:
