@@ -105,7 +105,7 @@ void k_main(Multiboot_t *BootInfo, OsBootDescriptor* BootDescriptor){
 	// Initialize(&x86BootInfo);
 
 	Log("k_main Kernel Infinite Loop");
-// Infinite loop
+	// Infinite loop
 	while(1){}
 
 }
